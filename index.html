@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GPUAlpha - GPU Market Intelligence & Predictions</title>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+    <meta name="description" content="Get the alpha edge in GPU markets. Real-time pricing, supply chain intelligence, and predictive analytics for graphics cards. Join the waitlist for early access.">
+    <meta name="keywords" content="GPU prices, graphics card predictions, GPU market intelligence, GPU supply chain, GPU alpha, GPU forecasting">
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://gpualpha.com/">
+    <meta property="og:title" content="GPUAlpha - GPU Market Intelligence & Predictions">
+    <meta property="og:description" content="Get the alpha edge in GPU markets. Real-time pricing, supply chain intelligence, and predictive analytics for graphics cards.">
+    
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:url" content="https://gpualpha.com/">
+    <meta property="twitter:title" content="GPUAlpha - GPU Market Intelligence & Predictions">
+    <meta property="twitter:description" content="Get the alpha edge in GPU markets. Real-time pricing, supply chain intelligence, and predictive analytics for graphics cards.">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="data:image/x-icon;base64,AAABAAEAEBAAAAEAIABoBAAAFgAAACgAAAAQAAAAIAAAAAEAIAAAAAAAAAQAABILAAASCwAAAAAAAAAAAAD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=">
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Roboto', 'Open Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            line-height: 1.6;
+            color: #e0e0e0;
+            background: linear-gradient(135deg, #0f0f23 0%, #1a1a2e 50%, #16213e 100%);
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+        
+        .hero {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            color: white;
+        }
+        
+        .hero-content {
+            max-width: 800px;
+        }
+        
+        .logo {
+            font-size: 3.5rem;
+            font-weight: 900;
+            margin-bottom: 1rem;
+            background: linear-gradient(45deg, #ff6b6b, #4ecdc4, #45b7d1, #96ceb4);
+            background-size: 300% 300%;
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: gradient 3s ease infinite;
+            letter-spacing: -2px;
+        }
+        
+        @keyframes gradient {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        
+        .tagline {
+            font-size: 1.5rem;
+            margin-bottom: 2rem;
+            opacity: 0.9;
+            font-weight: 300;
+        }
+        
+        .description {
+            font-size: 1.1rem;
+            margin-bottom: 3rem;
+            opacity: 0.8;
+            line-height: 1.8;
+        }
+        
+        .features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+            margin-bottom: 4rem;
+        }
+        
+        .feature {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 2rem;
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        
+        .feature:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+            background: rgba(255, 255, 255, 0.08);
+        }
+        
+        .feature-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            display: block;
+        }
+        
+        .feature h3 {
+            margin-bottom: 1rem;
+            font-size: 1.3rem;
+        }
+        
+        .waitlist-form {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 3rem;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(10px);
+            color: #333;
+            margin: 2rem auto;
+            max-width: 500px;
+        }
+        
+        .waitlist-form h3 {
+            margin-bottom: 1rem;
+            color: #333;
+            font-size: 1.8rem;
+        }
+        
+        .waitlist-form p {
+            margin-bottom: 2rem;
+            color: #666;
+        }
+        
+        .form-group {
+            margin-bottom: 1.5rem;
+            text-align: left;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: #333;
+        }
+        
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 1rem;
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+        }
+        
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        
+        .submit-btn {
+            width: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px;
+            border-radius: 10px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        
+        .submit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
+        }
+        
+        .footer {
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 2rem 0;
+            text-align: center;
+            margin-top: 4rem;
+        }
+        
+        .footer p {
+            opacity: 0.8;
+            margin-bottom: 1rem;
+        }
+        
+        .social-links a {
+            color: white;
+            text-decoration: none;
+            margin: 0 1rem;
+            opacity: 0.8;
+            transition: opacity 0.3s ease;
+        }
+        
+        .social-links a:hover {
+            opacity: 1;
+        }
+        
+        .coming-soon-badge {
+            display: inline-block;
+            background: linear-gradient(45deg, #ff6b6b, #ee5a52);
+            color: white;
+            padding: 8px 20px;
+            border-radius: 25px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            margin-bottom: 2rem;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        
+        @media (max-width: 768px) {
+            .logo {
+                font-size: 2.5rem;
+            }
+            
+            .tagline {
+                font-size: 1.2rem;
+            }
+            
+            .description {
+                font-size: 1rem;
+            }
+            
+            .waitlist-form {
+                margin: 2rem 10px;
+                padding: 2rem;
+            }
+            
+            .features {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <main class="hero">
+        <div class="container">
+            <div class="hero-content">
+                <div class="coming-soon-badge">🚀 Coming Soon</div>
+                <h1 class="logo">GPUAlpha</h1>
+                <p class="tagline">Generate Alpha in GPU Markets</p>
+                <p class="description">
+                    The world's first gamified GPU prediction marketplace. Get real-time pricing intelligence, 
+                    supply chain insights, and market forecasts to gain the alpha edge in graphics card markets.
+                </p>
+                
+                <div class="features">
+                    <div class="feature">
+                        <span class="feature-icon">📊</span>
+                        <h3>Real-Time Intelligence</h3>
+                        <p>Live GPU pricing, availability tracking, and supply chain monitoring across 50+ retailers globally.</p>
+                    </div>
+                    
+                    <div class="feature">
+                        <span class="feature-icon">🎯</span>
+                        <h3>Predictive Analytics</h3>
+                        <p>AI-powered forecasting for GPU prices, demand cycles, and market opportunities.</p>
+                    </div>
+                    
+                    <div class="feature">
+                        <span class="feature-icon">🎮</span>
+                        <h3>Gamified Predictions</h3>
+                        <p>Compete with other users, build reputation, and earn rewards for accurate market predictions.</p>
+                    </div>
+                    
+                    <div class="feature">
+                        <span class="feature-icon">💎</span>
+                        <h3>Fractional GPU Access</h3>
+                        <p>Buy fractional shares in high-end GPUs and get access to computing power without full ownership costs.</p>
+                    </div>
+                </div>
+                
+                <div class="waitlist-form">
+                    <h3>Join the Alpha Access Waitlist</h3>
+                    <p>Be among the first to access GPUAlpha when we launch. Limited early access spots available.</p>
+                    
+                    <form id="waitlistForm" action="#" method="POST">
+                        <div class="form-group">
+                            <label for="email">Email Address</label>
+                            <input type="email" id="email" name="email" required placeholder="your@email.com">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="interest">Primary Interest</label>
+                            <select id="interest" name="interest" required>
+                                <option value="">Select your focus...</option>
+                                <option value="gaming">Gaming GPUs</option>
+                                <option value="ai-ml">AI/ML Workloads</option>
+                                <option value="mining">Crypto Mining</option>
+                                <option value="professional">Professional/Workstation</option>
+                                <option value="trading">GPU Market Trading</option>
+                                <option value="enterprise">Enterprise Solutions</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="experience">Experience Level</label>
+                            <select id="experience" name="experience" required>
+                                <option value="">Select level...</option>
+                                <option value="beginner">New to GPU markets</option>
+                                <option value="intermediate">Some experience</option>
+                                <option value="advanced">Very experienced</option>
+                                <option value="professional">Industry professional</option>
+                            </select>
+                        </div>
+                        
+                        <button type="submit" class="submit-btn">🚀 Get Alpha Access</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </main>
+    
+    <!-- New content sections -->
+    <section class="content-section">
+        <div class="container">
+            <div class="content-block">
+                <h2>🚀 GPU Demand is Growing</h2>
+                <p>The global GPU market is experiencing unprecedented growth, driven by explosive demand from AI companies, crypto mining operations, and next-generation gaming. With <strong>AI chip demand expected to reach $135 billion by 2027</strong> and GPU shortages becoming commonplace, understanding market dynamics has never been more critical.</p>
+                <p>From NVIDIA's H100 data center GPUs commanding $40,000+ each to consumer RTX cards selling 50% above MSRP, the GPU market has evolved from a niche hardware segment into a critical economic indicator. Smart investors, gamers, and businesses need real-time intelligence to navigate this volatile landscape.</p>
+            </div>
+            
+            <div class="content-block">
+                <h2>📊 Insights & Data</h2>
+                <p>GPUAlpha aggregates data from <strong>50+ retailers, supply chain sources, and performance benchmarks</strong> to provide unprecedented visibility into GPU markets. Our platform combines real-time pricing, inventory tracking, supply chain intelligence, and predictive analytics into a single, gamified experience.</p>
+                <p>Unlike static price comparison sites, we provide <strong>forward-looking insights</strong>: When will the next GPU shortage hit? Which cards offer the best price-performance trajectory? How do global events impact GPU availability? Our community-driven prediction engine turns market intelligence into actionable opportunities.</p>
+            </div>
+            
+            <div class="content-block">
+                <h2>🎯 Why Do We Need a Predictive Market?</h2>
+                <p>Traditional GPU markets are opaque, reactive, and inefficient. Buyers discover price changes after they happen, sellers lack demand forecasting tools, and the entire ecosystem operates on outdated information. This creates massive inefficiencies and missed opportunities.</p>
+                <p><strong>GPUAlpha changes the game</strong> by creating a transparent, forward-looking marketplace where predictions drive better decisions. Whether you're timing a gaming PC build, planning AI infrastructure investments, or optimizing your mining operation, our predictive intelligence helps you stay ahead of the market instead of reacting to it.</p>
+            </div>
+        </div>
+    </section>
+    
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2025 GPUAlpha. All rights reserved.</p>
+            <p>GPU Market Intelligence • Predictive Analytics • Supply Chain Monitoring</p>
+            <div class="social-links">
+                <a href="mailto:hello@gpualpha.com">📧 Contact</a>
+                <a href="#" onclick="return false;">🐦 Twitter</a>
+                <a href="#" onclick="return false;">💼 LinkedIn</a>
+            </div>
+        </div>
+    </footer>
+    
+    <script>
+        // Simple form handling (you can replace with actual backend later)
+        document.getElementById('waitlistForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const email = document.getElementById('email').value;
+            const interest = document.getElementById('interest').value;
+            const experience = document.getElementById('experience').value;
+            
+            // For now, just show success message (replace with actual API call later)
+            alert('🎉 Welcome to the GPUAlpha waitlist! We\'ll notify you as soon as alpha access is available.');
+            
+            // Optional: Send data to Google Forms or simple backend
+            // You can replace this with actual form submission to your preferred service
+            
+            // Reset form
+            this.reset();
+        });
+        
+        // Add some interactive animations
+        document.addEventListener('DOMContentLoaded', function() {
+            // Smooth scrolling for any future anchor links
+            document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+                anchor.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    document.querySelector(this.getAttribute('href'))?.scrollIntoView({
+                        behavior: 'smooth'
+                    });
+                });
+            });
+        });
+        
+        // Google Analytics (replace with your tracking ID when ready)
+        /*
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'GA_TRACKING_ID');
+        */
+    </script>
+    
+    <!-- Schema.org markup for SEO -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "WebSite",
+        "name": "GPUAlpha",
+        "alternateName": "GPU Alpha",
+        "url": "https://gpualpha.com",
+        "description": "GPU market intelligence and prediction platform. Real-time pricing, supply chain insights, and predictive analytics for graphics cards.",
+        "potentialAction": {
+            "@type": "SearchAction",
+            "target": {
+                "@type": "EntryPoint",
+                "urlTemplate": "https://gpualpha.com/search?q={search_term_string}"
+            },
+            "query-input": "required name=search_term_string"
+        }
+    }
+    </script>
+</body>
+</html>
