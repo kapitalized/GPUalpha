@@ -1,25 +1,17 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card'
-import { Button } from '../../components/ui/button'
 
 export default function MyPredictions() {
   const [predictions, setPredictions] = useState([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    // Fetch user predictions
-    fetch('/api/predictions?userId=1')
-      .then(res => res.json())
-      .then(data => {
-        setPredictions(data)
-        setLoading(false)
-      })
-      .catch(err => {
-        console.error('Failed to load predictions:', err)
-        setLoading(false)
-      })
+    // Simulate loading
+    setTimeout(() => {
+      setPredictions([])
+      setLoading(false)
+    }, 1000)
   }, [])
 
   const formatDate = (dateString: string) => {
@@ -41,19 +33,14 @@ export default function MyPredictions() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-800">
-      {/* Header */}
       <header className="border-b border-slate-800">
         <div className="container mx-auto px-4 py-6">
           <div className="flex items-center justify-between">
             <a href="/" className="text-3xl font-bold text-white">⚡ GPUAlpha</a>
             <div className="flex space-x-4">
-              <Button variant="ghost">
-                <a href="/">Dashboard</a>
-              </Button>
-              <Button variant="ghost">
-                <a href="/leaderboard">Leaderboard</a>
-              </Button>
-              <Button variant="outline">Sign In</Button>
+              <a href="/" className="text-slate-300 hover:text-white px-3 py-2">Dashboard</a>
+              <a href="/leaderboard" className="text-slate-300 hover:text-white px-3 py-2">Leaderboard</a>
+              <button className="border border-slate-700 text-white px-4 py-2 rounded hover:bg-slate-800">Sign In</button>
             </div>
           </div>
         </div>
@@ -66,61 +53,24 @@ export default function MyPredictions() {
         </div>
 
         {predictions.length === 0 ? (
-          <Card>
-            <CardContent className="p-12 text-center">
-              <div className="text-6xl mb-4">🎯</div>
-              <h3 className="text-xl font-semibold text-white mb-2">No Predictions Yet</h3>
-              <p className="text-slate-400 mb-6">Start making predictions to appear on the leaderboard!</p>
-              <Button asChild>
-                <a href="/">Make Your First Prediction</a>
-              </Button>
-            </CardContent>
-          </Card>
+          <div className="bg-slate-900/50 border border-slate-700 rounded-xl p-12 text-center">
+            <div className="text-6xl mb-4">🎯</div>
+            <h3 className="text-xl font-semibold text-white mb-2">No Predictions Yet</h3>
+            <p className="text-slate-400 mb-6">Start making predictions to appear on the leaderboard!</p>
+            <button 
+              onClick={() => window.location.href = '/'}
+              className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-6 py-3 rounded-lg font-semibold hover:from-blue-700 hover:to-purple-700"
+            >
+              Make Your First Prediction
+            </button>
+          </div>
         ) : (
           <div className="grid gap-6">
             {predictions.map((prediction: any) => (
-              <Card key={prediction.id}>
-                <CardHeader>
-                  <div className="flex justify-between items-start">
-                    <CardTitle className="text-lg">
-                      {prediction.gpuId.replace('-', ' ').toUpperCase()}
-                    </CardTitle>
-                    <div className={`px-3 py-1 rounded-full text-sm ${
-                      prediction.status === 'pending' ? 'bg-yellow-900 text-yellow-300' :
-                      prediction.status === 'correct' ? 'bg-green-900 text-green-300' :
-                      'bg-red-900 text-red-300'
-                    }`}>
-                      {prediction.status}
-                    </div>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
-                    <div>
-                      <span className="text-slate-400 text-sm">Predicted Price</span>
-                      <div className="text-white font-semibold">${prediction.predictedPrice}</div>
-                    </div>
-                    <div>
-                      <span className="text-slate-400 text-sm">Timeframe</span>
-                      <div className="text-white font-semibold">{prediction.timeframe}</div>
-                    </div>
-                    <div>
-                      <span className="text-slate-400 text-sm">Confidence</span>
-                      <div className="text-white font-semibold">{prediction.confidence}%</div>
-                    </div>
-                    <div>
-                      <span className="text-slate-400 text-sm">Created</span>
-                      <div className="text-white font-semibold">{formatDate(prediction.createdAt)}</div>
-                    </div>
-                  </div>
-                  {prediction.reasoning && (
-                    <div className="mt-4 p-4 bg-slate-800/50 rounded-lg">
-                      <span className="text-slate-400 text-sm">Reasoning:</span>
-                      <p className="text-slate-300 mt-1">{prediction.reasoning}</p>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
+              <div key={prediction.id} className="bg-slate-900/50 border border-slate-700 rounded-xl p-6">
+                <h3 className="text-white text-lg font-semibold mb-4">Prediction Details</h3>
+                {/* Prediction content would go here */}
+              </div>
             ))}
           </div>
         )}
