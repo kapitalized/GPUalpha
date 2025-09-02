@@ -1,41 +1,55 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { useAuth } from '../lib/hooks/useAuth'
 
-// Sample data
-const sampleGPUs = [
-  {
-    id: '1',
-    model: 'RTX 4090',
-    brand: 'NVIDIA',
-    currentPrice: 2499,
-    msrp: 1599,
-    availability: 'limited'
-  },
-  {
-    id: '2', 
-    model: 'RTX 4080 Super',
-    brand: 'NVIDIA',
-    currentPrice: 1199,
-    msrp: 999,
-    availability: 'in_stock'
-  },
-  {
-    id: '3',
-    model: 'RX 7900 XTX',
-    brand: 'AMD', 
-    currentPrice: 899,
-    msrp: 999,
-    availability: 'in_stock'
-  }
-]
+interface GPU {
+  id: string
+  model: string
+  brand: string
+  current_price: number
+  msrp: number
+  availability: string
+}
 
 export default function HomePage() {
+  const [gpus, setGpus] = useState<GPU[]>([])
+  const [loading, setLoading] = useState(true)
   const [selectedGPU, setSelectedGPU] = useState<string | null>(null)
+  const { user } = useAuth()
+
+  useEffect(() => {
+    fetchGPUs()
+  }, [])
+
+  const fetchGPUs = async () => {
+    try {
+      const response = await fetch('/api/prices')
+      if (!response.ok) throw new Error('Failed to fetch')
+      const data = await response.json()
+      setGpus(data)
+    } catch (error) {
+      console.error('Error fetching GPUs:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
   
   const handlePredict = (gpuId: string) => {
+    if (!user) {
+      alert('Please sign in to make predictions!')
+      return
+    }
     setSelectedGPU(gpuId)
     alert(`Making prediction for GPU ${gpuId}`)
+  }
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-800 flex items-center justify-center">
+        <div className="text-white text-xl">Loading GPUs...</div>
+      </div>
+    )
   }
 
   return (
@@ -49,8 +63,20 @@ export default function HomePage() {
             </div>
             <div className="flex space-x-4">
               <button className="text-slate-300 hover:text-white px-3 py-2">Dashboard</button>
-              <button className="text-slate-300 hover:text-white px-3 py-2">Leaderboard</button>
-              <button className="border border-slate-700 text-white px-4 py-2 rounded hover:bg-slate-800">Sign In</button>
+              <a href="/leaderboard" className="text-slate-300 hover:text-white px-3 py-2">Leaderboard</a>
+              <a href="/predictions" className="text-slate-300 hover:text-white px-3 py-2">My Predictions</a>
+              {user ? (
+                <div className="flex items-center space-x-3">
+                  <span className="text-slate-300">Welcome, {user.username || user.email}</span>
+                  <button className="border border-slate-700 text-white px-4 py-2 rounded hover:bg-slate-800">
+                    Sign Out
+                  </button>
+                </div>
+              ) : (
+                <button className="border border-slate-700 text-white px-4 py-2 rounded hover:bg-slate-800">
+                  Sign In
+                </button>
+              )}
             </div>
           </div>
         </div>
@@ -69,7 +95,7 @@ export default function HomePage() {
         <section className="mb-12">
           <h2 className="text-2xl font-bold text-white mb-6">🔥 Trending GPUs</h2>
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {sampleGPUs.map((gpu) => (
+            {gpus.map((gpu) => (
               <div key={gpu.id} className="bg-slate-900/50 border border-slate-700 rounded-xl p-6 hover:bg-slate-800/50 transition-colors">
                 <div className="flex justify-between items-start mb-4">
                   <div>
@@ -88,7 +114,7 @@ export default function HomePage() {
                 <div className="space-y-3 mb-6">
                   <div className="flex justify-between">
                     <span className="text-slate-400">Current Price:</span>
-                    <span className="text-white font-bold">${gpu.currentPrice}</span>
+                    <span className="text-white font-bold">${gpu.current_price}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-slate-400">MSRP:</span>
@@ -97,9 +123,9 @@ export default function HomePage() {
                   <div className="flex justify-between">
                     <span className="text-slate-400">vs MSRP:</span>
                     <span className={`font-semibold ${
-                      gpu.currentPrice > gpu.msrp ? 'text-red-400' : 'text-green-400'
+                      gpu.current_price > gpu.msrp ? 'text-red-400' : 'text-green-400'
                     }`}>
-                      {gpu.currentPrice > gpu.msrp ? '+' : ''}{(((gpu.currentPrice - gpu.msrp) / gpu.msrp) * 100).toFixed(1)}%
+                      {gpu.current_price > gpu.msrp ? '+' : ''}{(((gpu.current_price - gpu.msrp) / gpu.msrp) * 100).toFixed(1)}%
                     </span>
                   </div>
                 </div>

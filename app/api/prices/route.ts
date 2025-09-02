@@ -1,77 +1,105 @@
 import { NextResponse } from 'next/server'
-
-// Sample GPU data - will replace with real API calls
-const gpuData = [
-  {
-    id: 'rtx-4090',
-    model: 'RTX 4090',
-    brand: 'NVIDIA',
-    msrp: 1599,
-    currentPrice: 2499,
-    availability: 'limited',
-    priceHistory: [
-      { date: '2025-08-25', price: 2599 },
-      { date: '2025-08-26', price: 2549 },
-      { date: '2025-08-27', price: 2499 },
-    ],
-    benchmarkScore: 35000,
-    powerConsumption: 450,
-    lastUpdated: new Date().toISOString()
-  },
-  {
-    id: 'rtx-4080-super',
-    model: 'RTX 4080 Super', 
-    brand: 'NVIDIA',
-    msrp: 999,
-    currentPrice: 1199,
-    availability: 'in_stock',
-    priceHistory: [
-      { date: '2025-08-25', price: 1249 },
-      { date: '2025-08-26', price: 1224 },
-      { date: '2025-08-27', price: 1199 },
-    ],
-    benchmarkScore: 28000,
-    powerConsumption: 320,
-    lastUpdated: new Date().toISOString()
-  },
-  {
-    id: 'rx-7900-xtx',
-    model: 'RX 7900 XTX',
-    brand: 'AMD',
-    msrp: 999,
-    currentPrice: 899,
-    availability: 'in_stock',
-    priceHistory: [
-      { date: '2025-08-25', price: 949 },
-      { date: '2025-08-26', price: 924 },
-      { date: '2025-08-27', price: 899 },
-    ],
-    benchmarkScore: 26500,
-    powerConsumption: 355,
-    lastUpdated: new Date().toISOString()
-  }
-]
+import { supabase } from '../../../lib/supabase'
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url)
   const gpuId = searchParams.get('id')
   
-  // Return specific GPU or all GPUs
-  if (gpuId) {
-    const gpu = gpuData.find(g => g.id === gpuId)
-    if (!gpu) {
-      return NextResponse.json({ error: 'GPU not found' }, { status: 404 })
+  try {
+    if (gpuId) {
+      // Return specific GPU with price history
+      const { data: gpu, error: gpuError } = await supabase
+        .from('gpus')
+        .select(`
+          *,
+          price_history (
+            price,
+            recorded_at,
+            source
+          )
+        `)
+        .eq('id', gpuId)
+        .single()
+      
+      if (gpuError) throw gpuError
+      if (!gpu) {
+        return NextResponse.json({ error: 'GPU not found' }, { status: 404 })
+      }
+      
+      return NextResponse.json(gpu)
+    } else {
+      // Return all GPUs with latest price data
+      const { data: gpus, error } = await supabase
+        .from('gpus')
+        .select('*')
+        .order('created_at', { ascending: false })
+      
+      if (error) throw error
+      
+      return NextResponse.json(gpus)
     }
-    return NextResponse.json(gpu)
+  } catch (error) {
+    console.error('Database error:', error)
+    return NextResponse.json(
+      { error: 'Failed to fetch GPU data' },
+      { status: 500 }
+    )
   }
-  
-  return NextResponse.json(gpuData)
 }
 
 export async function POST(request: Request) {
-  // TODO: Add new GPU price data
-  const body = await request.json()
-  console.log('New price data:', body)
-  
-  return NextResponse.json({ success: true, message: 'Price updated' })
+  try {
+    const body = await request.json()
+    
+    // Add new GPU or update price
+    if (body.type === 'price_update') {
+      const { gpu_id, price, source = 'api' } = body
+      
+      // Update current price in gpus table
+      const { error: updateError } = await supabase
+        .from('gpus')
+        .update({ 
+          current_price: price, 
+          updated_at: new Date().toISOString() 
+        })
+        .eq('id', gpu_id)
+      
+      if (updateError) throw updateError
+      
+      // Add to price history
+      const { error: historyError } = await supabase
+        .from('price_history')
+        .insert({
+          gpu_id,
+          price,
+          source
+        })
+      
+      if (historyError) throw historyError
+      
+      return NextResponse.json({ success: true, message: 'Price updated' })
+    }
+    
+    // Add new GPU
+    if (body.type === 'new_gpu') {
+      const { data, error } = await supabase
+        .from('gpus')
+        .insert(body.gpu_data)
+        .select()
+        .single()
+      
+      if (error) throw error
+      
+      return NextResponse.json({ success: true, gpu: data })
+    }
+    
+    return NextResponse.json({ error: 'Invalid request type' }, { status: 400 })
+    
+  } catch (error) {
+    console.error('Database error:', error)
+    return NextResponse.json(
+      { error: 'Failed to process request' },
+      { status: 500 }
+    )
+  }
 }
