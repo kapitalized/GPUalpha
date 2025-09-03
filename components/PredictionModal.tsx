@@ -27,24 +27,57 @@ export function PredictionModal({ gpu, isOpen, onClose, onSubmit }: PredictionMo
   const [timeframe, setTimeframe] = useState('7d')
   const [confidence, setConfidence] = useState(50)
   const [reasoning, setReasoning] = useState('')
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!gpu) return
 
-    onSubmit({
-      gpuId: gpu.id,
-      predictedPrice: parseFloat(predictedPrice),
-      timeframe,
-      confidence,
-      reasoning
-    })
+    setIsSubmitting(true)
+    
+    try {
+      const response = await fetch('/api/predictions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          user_id: 'temp-user-id', // We'll fix this with real auth later
+          gpu_id: gpu.id,
+          predicted_price: parseFloat(predictedPrice),
+          timeframe,
+          confidence,
+          reasoning: reasoning || null
+        })
+      })
 
-    // Reset form
-    setPredictedPrice('')
-    setReasoning('')
-    setConfidence(50)
-    onClose()
+      if (!response.ok) {
+        throw new Error('Failed to save prediction')
+      }
+
+      const result = await response.json()
+      
+      onSubmit({
+        gpuId: gpu.id,
+        predictedPrice: parseFloat(predictedPrice),
+        timeframe,
+        confidence,
+        reasoning
+      })
+
+      alert('Prediction saved successfully! 🎯')
+
+      // Reset form
+      setPredictedPrice('')
+      setReasoning('')
+      setConfidence(50)
+      onClose()
+    } catch (error) {
+      console.error('Error saving prediction:', error)
+      alert('Failed to save prediction. Please try again.')
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   if (!isOpen || !gpu) return null
@@ -55,7 +88,13 @@ export function PredictionModal({ gpu, isOpen, onClose, onSubmit }: PredictionMo
         <CardHeader>
           <CardTitle className="flex justify-between items-center">
             <span>Predict: {gpu.brand} {gpu.model}</span>
-            <button onClick={onClose} className="text-slate-400 hover:text-white">✕</button>
+            <button 
+              onClick={onClose} 
+              className="text-slate-400 hover:text-white text-xl leading-none"
+              disabled={isSubmitting}
+            >
+              ✕
+            </button>
           </CardTitle>
           <p className="text-slate-400 text-sm">Current Price: ${gpu.currentPrice}</p>
         </CardHeader>
@@ -70,11 +109,13 @@ export function PredictionModal({ gpu, isOpen, onClose, onSubmit }: PredictionMo
               <input
                 type="number"
                 step="0.01"
+                min="0"
                 value={predictedPrice}
                 onChange={(e) => setPredictedPrice(e.target.value)}
                 className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-md text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder="2499.99"
                 required
+                disabled={isSubmitting}
               />
             </div>
 
@@ -87,6 +128,7 @@ export function PredictionModal({ gpu, isOpen, onClose, onSubmit }: PredictionMo
                 value={timeframe}
                 onChange={(e) => setTimeframe(e.target.value)}
                 className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-md text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                disabled={isSubmitting}
               >
                 <option value="7d">7 days</option>
                 <option value="30d">30 days</option>
@@ -105,11 +147,12 @@ export function PredictionModal({ gpu, isOpen, onClose, onSubmit }: PredictionMo
                 max="100"
                 value={confidence}
                 onChange={(e) => setConfidence(parseInt(e.target.value))}
-                className="w-full"
+                className="w-full accent-blue-500"
+                disabled={isSubmitting}
               />
               <div className="flex justify-between text-xs text-slate-500 mt-1">
-                <span>Low</span>
-                <span>High</span>
+                <span>Low (10%)</span>
+                <span>High (100%)</span>
               </div>
             </div>
 
@@ -124,16 +167,52 @@ export function PredictionModal({ gpu, isOpen, onClose, onSubmit }: PredictionMo
                 className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-md text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                 rows={3}
                 placeholder="Why do you think the price will change?"
+                maxLength={500}
+                disabled={isSubmitting}
               />
+              <div className="text-xs text-slate-500 mt-1">
+                {reasoning.length}/500 characters
+              </div>
             </div>
 
-            {/* Submit */}
+            {/* Price Change Preview */}
+            {predictedPrice && (
+              <div className="bg-slate-800 rounded-md p-3">
+                <div className="text-sm text-slate-400 mb-2">Price Change Preview:</div>
+                <div className="flex justify-between items-center">
+                  <span className="text-slate-300">Current → Predicted:</span>
+                  <div className="text-right">
+                    <div className="text-white font-semibold">
+                      ${gpu.currentPrice} → ${parseFloat(predictedPrice).toFixed(2)}
+                    </div>
+                    <div className={`text-sm font-medium ${
+                      parseFloat(predictedPrice) > gpu.currentPrice ? 'text-green-400' : 'text-red-400'
+                    }`}>
+                      {parseFloat(predictedPrice) > gpu.currentPrice ? '+' : ''}
+                      {((parseFloat(predictedPrice) - gpu.currentPrice) / gpu.currentPrice * 100).toFixed(1)}%
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Submit Buttons */}
             <div className="flex space-x-3">
-              <Button type="button" variant="outline" onClick={onClose} className="flex-1">
+              <Button 
+                type="button" 
+                variant="outline" 
+                onClick={onClose} 
+                className="flex-1"
+                disabled={isSubmitting}
+              >
                 Cancel
               </Button>
-              <Button type="submit" className="flex-1">
-                Submit Prediction 🎯
+              <Button 
+                type="submit" 
+                className="flex-1 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+                disabled={isSubmitting || !predictedPrice}
+              >
+                {isSubmitting ? 'Submitting...' : 'Submit Prediction 🎯'}
               </Button>
             </div>
           </form>
