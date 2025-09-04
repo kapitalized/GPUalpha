@@ -1,12 +1,24 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { supabase, User } from '../supabase'
-import type { Session } from '@supabase/supabase-js'
+import { supabase } from '../supabase'
+import type { Session, User } from '@supabase/supabase-js'
+
+interface UserProfile {
+  id: string
+  email: string
+  username?: string
+  avatar_url?: string
+  points: number
+  accuracy_score: number
+  prediction_streak: number
+  created_at: string
+  updated_at: string
+}
 
 export function useAuth() {
   const [session, setSession] = useState<Session | null>(null)
-  const [user, setUser] = useState<User | null>(null)
+  const [user, setUser] = useState<UserProfile | null>(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
