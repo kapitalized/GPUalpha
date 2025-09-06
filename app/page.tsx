@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useAuth } from '../lib/hooks/useAuth'
+import { ManualPriceUpdate } from '../components/ManualPriceUpdate'
 
 interface GPU {
   id: string
@@ -83,6 +84,9 @@ export default function HomePage() {
       </header>
 
       <main className="container mx-auto px-4 py-12">
+        {/* Manual Price Update Component - ADDED HERE */}
+        <ManualPriceUpdate />
+        
         <div className="text-center mb-12">
           <h1 className="text-5xl font-bold text-white mb-4">
             Generate Alpha in <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-600">GPU Markets</span>
