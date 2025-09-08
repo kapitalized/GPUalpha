@@ -191,7 +191,7 @@ export default function HomePage() {
         </section>
       </main>
 
-      {/* Prediction Modal - Inline for now */}
+      {/* Full Prediction Modal */}
       {showPredictionModal && selectedGPU && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
           <Card className="w-full max-w-md">
@@ -201,6 +201,7 @@ export default function HomePage() {
                 <button 
                   onClick={handleModalClose} 
                   className="text-slate-400 hover:text-white text-xl leading-none"
+                  disabled={isSubmitting}
                 >
                   ✕
                 </button>
@@ -209,30 +210,122 @@ export default function HomePage() {
             </CardHeader>
             
             <CardContent>
-              <div className="space-y-4">
-                <p className="text-white text-center">🎯 Simple Prediction Demo</p>
-                <p className="text-slate-300 text-sm text-center">
-                  Full prediction form will be added after this works!
-                </p>
+              <form onSubmit={handlePredictionSubmit} className="space-y-6">
+                {/* Price Prediction */}
+                <div>
+                  <label className="block text-sm font-medium text-slate-300 mb-2">
+                    Predicted Price ($)
+                  </label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    value={predictedPrice}
+                    onChange={(e) => setPredictedPrice(e.target.value)}
+                    className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-md text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="2499.99"
+                    required
+                    disabled={isSubmitting}
+                  />
+                </div>
+
+                {/* Timeframe */}
+                <div>
+                  <label className="block text-sm font-medium text-slate-300 mb-2">
+                    Timeframe
+                  </label>
+                  <select
+                    value={timeframe}
+                    onChange={(e) => setTimeframe(e.target.value)}
+                    className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-md text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    disabled={isSubmitting}
+                  >
+                    <option value="7d">7 days</option>
+                    <option value="30d">30 days</option>
+                    <option value="90d">90 days</option>
+                  </select>
+                </div>
+
+                {/* Confidence */}
+                <div>
+                  <label className="block text-sm font-medium text-slate-300 mb-2">
+                    Confidence: {confidence}%
+                  </label>
+                  <input
+                    type="range"
+                    min="10"
+                    max="100"
+                    value={confidence}
+                    onChange={(e) => setConfidence(parseInt(e.target.value))}
+                    className="w-full accent-blue-500"
+                    disabled={isSubmitting}
+                  />
+                  <div className="flex justify-between text-xs text-slate-500 mt-1">
+                    <span>Low (10%)</span>
+                    <span>High (100%)</span>
+                  </div>
+                </div>
+
+                {/* Reasoning */}
+                <div>
+                  <label className="block text-sm font-medium text-slate-300 mb-2">
+                    Reasoning (Optional)
+                  </label>
+                  <textarea
+                    value={reasoning}
+                    onChange={(e) => setReasoning(e.target.value)}
+                    className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-md text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    rows={3}
+                    placeholder="Why do you think the price will change?"
+                    maxLength={500}
+                    disabled={isSubmitting}
+                  />
+                  <div className="text-xs text-slate-500 mt-1">
+                    {reasoning.length}/500 characters
+                  </div>
+                </div>
+
+                {/* Price Change Preview */}
+                {predictedPrice && (
+                  <div className="bg-slate-800 rounded-md p-3">
+                    <div className="text-sm text-slate-400 mb-2">Price Change Preview:</div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-slate-300">Current → Predicted:</span>
+                      <div className="text-right">
+                        <div className="text-white font-semibold">
+                          ${selectedGPU.current_price} → ${parseFloat(predictedPrice).toFixed(2)}
+                        </div>
+                        <div className={`text-sm font-medium ${
+                          parseFloat(predictedPrice) > selectedGPU.current_price ? 'text-green-400' : 'text-red-400'
+                        }`}>
+                          {parseFloat(predictedPrice) > selectedGPU.current_price ? '+' : ''}
+                          {((parseFloat(predictedPrice) - selectedGPU.current_price) / selectedGPU.current_price * 100).toFixed(1)}%
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Submit Buttons */}
                 <div className="flex space-x-3">
                   <Button 
+                    type="button" 
                     variant="outline" 
                     onClick={handleModalClose} 
                     className="flex-1"
+                    disabled={isSubmitting}
                   >
                     Cancel
                   </Button>
                   <Button 
-                    onClick={() => {
-                      alert('Demo prediction saved!')
-                      handleModalClose()
-                    }}
-                    className="flex-1"
+                    type="submit" 
+                    className="flex-1 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+                    disabled={isSubmitting || !predictedPrice}
                   >
-                    Save Demo Prediction
+                    {isSubmitting ? 'Submitting...' : 'Submit Prediction 🎯'}
                   </Button>
                 </div>
-              </div>
+              </form>
             </CardContent>
           </Card>
         </div>
