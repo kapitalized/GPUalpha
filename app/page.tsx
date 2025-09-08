@@ -3,6 +3,8 @@
 import { useState, useEffect } from 'react'
 import { useAuth } from '../lib/hooks/useAuth'
 import { ManualPriceUpdate } from '../components/ManualPriceUpdate'
+import { Button } from '../components/ui/button'
+import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card'
 
 interface GPU {
   id: string
@@ -16,7 +18,8 @@ interface GPU {
 export default function HomePage() {
   const [gpus, setGpus] = useState<GPU[]>([])
   const [loading, setLoading] = useState(true)
-  const [selectedGPU, setSelectedGPU] = useState<string | null>(null)
+  const [selectedGPU, setSelectedGPU] = useState<GPU | null>(null)
+  const [showPredictionModal, setShowPredictionModal] = useState(false)
   const { user } = useAuth()
 
   useEffect(() => {
@@ -36,13 +39,26 @@ export default function HomePage() {
     }
   }
   
-  const handlePredict = (gpuId: string) => {
+  const handlePredict = (gpu: GPU) => {
     if (!user) {
-      alert('Please sign in to make predictions!')
-      return
+      // For demo purposes, allow predictions with a notice
+      const proceed = confirm('🚀 Demo Mode: Authentication not set up yet.\n\nPredictions will be saved as "demo user".\n\nProceed with prediction?')
+      if (!proceed) return
     }
-    setSelectedGPU(gpuId)
-    alert(`Making prediction for GPU ${gpuId}`)
+    setSelectedGPU(gpu)
+    setShowPredictionModal(true)
+  }
+
+  const handlePredictionSubmit = (prediction: any) => {
+    console.log('Prediction submitted:', prediction)
+    // Modal already handles the API call, just close it
+    setShowPredictionModal(false)
+    setSelectedGPU(null)
+  }
+
+  const handleModalClose = () => {
+    setShowPredictionModal(false)
+    setSelectedGPU(null)
   }
 
   if (loading) {
@@ -84,7 +100,7 @@ export default function HomePage() {
       </header>
 
       <main className="container mx-auto px-4 py-12">
-        {/* Manual Price Update Component - ADDED HERE */}
+        {/* Manual Price Update Component */}
         <ManualPriceUpdate />
         
         <div className="text-center mb-12">
@@ -135,7 +151,7 @@ export default function HomePage() {
                 </div>
                 
                 <button 
-                  onClick={() => handlePredict(gpu.id)}
+                  onClick={() => handlePredict(gpu)}
                   className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white py-3 rounded-lg font-semibold hover:from-blue-700 hover:to-purple-700 transition-colors"
                 >
                   Make Prediction 🎯
