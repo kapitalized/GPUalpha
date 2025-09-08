@@ -20,6 +20,14 @@ export default function HomePage() {
   const [loading, setLoading] = useState(true)
   const [selectedGPU, setSelectedGPU] = useState<GPU | null>(null)
   const [showPredictionModal, setShowPredictionModal] = useState(false)
+
+// Prediction form state
+  const [predictedPrice, setPredictedPrice] = useState('')
+  const [timeframe, setTimeframe] = useState('7d')
+  const [confidence, setConfidence] = useState(50)
+  const [reasoning, setReasoning] = useState('')
+  const [isSubmitting, setIsSubmitting] = useState(false)
+
   const { user } = useAuth()
 
   useEffect(() => {
