@@ -42,7 +42,7 @@ export function PredictionModal({ gpu, isOpen, onClose, onSubmit }: PredictionMo
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          user_id: 'temp-user-id', // We'll fix this with real auth later
+          user_id: 'temp-user-id', // Will be replaced with real user ID after auth
           gpu_id: gpu.id,
           predicted_price: parseFloat(predictedPrice),
           timeframe,
@@ -52,11 +52,14 @@ export function PredictionModal({ gpu, isOpen, onClose, onSubmit }: PredictionMo
       })
 
       if (!response.ok) {
-        throw new Error('Failed to save prediction')
+        const errorData = await response.json()
+        throw new Error(errorData.error || 'Failed to save prediction')
       }
 
       const result = await response.json()
+      console.log('Prediction saved:', result)
       
+      // Call the onSubmit callback
       onSubmit({
         gpuId: gpu.id,
         predictedPrice: parseFloat(predictedPrice),
@@ -65,7 +68,12 @@ export function PredictionModal({ gpu, isOpen, onClose, onSubmit }: PredictionMo
         reasoning
       })
 
-      alert('Prediction saved successfully! 🎯')
+      // Show success message with navigation option
+      const viewPredictions = confirm(`🎯 Prediction saved successfully!\n\nGPU: ${gpu.brand} ${gpu.model}\nPredicted Price: $${predictedPrice}\nTimeframe: ${timeframe}\nConfidence: ${confidence}%\n\nWould you like to view all predictions?`)
+      
+      if (viewPredictions) {
+        window.location.href = '/predictions'
+      }
 
       // Reset form
       setPredictedPrice('')
@@ -74,7 +82,7 @@ export function PredictionModal({ gpu, isOpen, onClose, onSubmit }: PredictionMo
       onClose()
     } catch (error) {
       console.error('Error saving prediction:', error)
-      alert('Failed to save prediction. Please try again.')
+      alert(`❌ Failed to save prediction: ${error instanceof Error ? error.message : 'Unknown error'}`)
     } finally {
       setIsSubmitting(false)
     }
