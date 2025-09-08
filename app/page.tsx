@@ -175,6 +175,19 @@ export default function HomePage() {
         </section>
       </main>
 
+      {/* Prediction Modal */}
+      <PredictionModal
+        gpu={selectedGPU ? {
+          id: selectedGPU.id,
+          model: selectedGPU.model,
+          brand: selectedGPU.brand,
+          currentPrice: selectedGPU.current_price
+        } : null}
+        isOpen={showPredictionModal}
+        onClose={handleModalClose}
+        onSubmit={handlePredictionSubmit}
+      />
+
       <footer className="bg-black/50 text-center py-8 mt-12">
         <p className="text-slate-400">&copy; 2025 GPUAlpha. Generate alpha in GPU markets.</p>
       </footer>
