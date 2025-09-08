@@ -175,18 +175,52 @@ export default function HomePage() {
         </section>
       </main>
 
-      {/* Prediction Modal */}
-      <PredictionModal
-        gpu={selectedGPU ? {
-          id: selectedGPU.id,
-          model: selectedGPU.model,
-          brand: selectedGPU.brand,
-          currentPrice: selectedGPU.current_price
-        } : null}
-        isOpen={showPredictionModal}
-        onClose={handleModalClose}
-        onSubmit={handlePredictionSubmit}
-      />
+      {/* Prediction Modal - Inline for now */}
+      {showPredictionModal && selectedGPU && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <Card className="w-full max-w-md">
+            <CardHeader>
+              <CardTitle className="flex justify-between items-center">
+                <span>Predict: {selectedGPU.brand} {selectedGPU.model}</span>
+                <button 
+                  onClick={handleModalClose} 
+                  className="text-slate-400 hover:text-white text-xl leading-none"
+                >
+                  ✕
+                </button>
+              </CardTitle>
+              <p className="text-slate-400 text-sm">Current Price: ${selectedGPU.current_price}</p>
+            </CardHeader>
+            
+            <CardContent>
+              <div className="space-y-4">
+                <p className="text-white text-center">🎯 Simple Prediction Demo</p>
+                <p className="text-slate-300 text-sm text-center">
+                  Full prediction form will be added after this works!
+                </p>
+                <div className="flex space-x-3">
+                  <Button 
+                    variant="outline" 
+                    onClick={handleModalClose} 
+                    className="flex-1"
+                  >
+                    Cancel
+                  </Button>
+                  <Button 
+                    onClick={() => {
+                      alert('Demo prediction saved!')
+                      handleModalClose()
+                    }}
+                    className="flex-1"
+                  >
+                    Save Demo Prediction
+                  </Button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
 
       <footer className="bg-black/50 text-center py-8 mt-12">
         <p className="text-slate-400">&copy; 2025 GPUAlpha. Generate alpha in GPU markets.</p>
