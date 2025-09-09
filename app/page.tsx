@@ -1,8 +1,9 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useAuth } from '../lib/hooks/useAuth'
+import { useAuth } from '../lib/contexts/AuthContext'
 import { ManualPriceUpdate } from '../components/ManualPriceUpdate'
+import { AuthModal } from '../components/AuthModal'
 import { Button } from '../components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card'
 
@@ -20,7 +21,16 @@ export default function HomePage() {
   const [loading, setLoading] = useState(true)
   const [selectedGPU, setSelectedGPU] = useState<GPU | null>(null)
   const [showPredictionModal, setShowPredictionModal] = useState(false)
-  const { user } = useAuth()
+  const [showAuthModal, setShowAuthModal] = useState(false)
+  
+  // Prediction form state
+  const [predictedPrice, setPredictedPrice] = useState('')
+  const [timeframe, setTimeframe] = useState('7d')
+  const [confidence, setConfidence] = useState(50)
+  const [reasoning, setReasoning] = useState('')
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  
+  const { user, loading: authLoading, signOut } = useAuth()
 
   useEffect(() => {
     fetchGPUs()
@@ -41,30 +51,72 @@ export default function HomePage() {
   
   const handlePredict = (gpu: GPU) => {
     if (!user) {
-      // For demo purposes, allow predictions with a notice
-      const proceed = confirm('🚀 Demo Mode: Authentication not set up yet.\n\nPredictions will be saved as "demo user".\n\nProceed with prediction?')
-      if (!proceed) return
+      setShowAuthModal(true)
+      return
     }
     setSelectedGPU(gpu)
     setShowPredictionModal(true)
   }
 
-  const handlePredictionSubmit = (prediction: any) => {
-    console.log('Prediction submitted:', prediction)
-    // Modal already handles the API call, just close it
-    setShowPredictionModal(false)
-    setSelectedGPU(null)
-  }
-
   const handleModalClose = () => {
     setShowPredictionModal(false)
     setSelectedGPU(null)
+    // Reset form
+    setPredictedPrice('')
+    setReasoning('')
+    setConfidence(50)
   }
 
-  if (loading) {
+  const handlePredictionSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!selectedGPU || !user) return
+
+    setIsSubmitting(true)
+    
+    try {
+      const response = await fetch('/api/predictions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          user_id: user.id,
+          gpu_id: selectedGPU.id,
+          predicted_price: parseFloat(predictedPrice),
+          timeframe,
+          confidence,
+          reasoning: reasoning || null
+        })
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || 'Failed to save prediction')
+      }
+
+      const result = await response.json()
+      console.log('Prediction saved:', result)
+      
+      // Show success message with navigation option
+      const viewPredictions = confirm(`🎯 Prediction saved successfully!\n\nGPU: ${selectedGPU.brand} ${selectedGPU.model}\nPredicted Price: $${predictedPrice}\nTimeframe: ${timeframe}\nConfidence: ${confidence}%\n\nWould you like to view all predictions?`)
+      
+      if (viewPredictions) {
+        window.location.href = '/predictions'
+      }
+
+      handleModalClose()
+    } catch (error) {
+      console.error('Error saving prediction:', error)
+      alert(`❌ Failed to save prediction: ${error instanceof Error ? error.message : 'Unknown error'}`)
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
+  if (loading || authLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-800 flex items-center justify-center">
-        <div className="text-white text-xl">Loading GPUs...</div>
+        <div className="text-white text-xl">Loading...</div>
       </div>
     )
   }
@@ -85,12 +137,18 @@ export default function HomePage() {
               {user ? (
                 <div className="flex items-center space-x-3">
                   <span className="text-slate-300">Welcome, {user.username || user.email}</span>
-                  <button className="border border-slate-700 text-white px-4 py-2 rounded hover:bg-slate-800">
+                  <button 
+                    onClick={() => signOut()}
+                    className="border border-slate-700 text-white px-4 py-2 rounded hover:bg-slate-800"
+                  >
                     Sign Out
                   </button>
                 </div>
               ) : (
-                <button className="border border-slate-700 text-white px-4 py-2 rounded hover:bg-slate-800">
+                <button 
+                  onClick={() => setShowAuthModal(true)}
+                  className="border border-slate-700 text-white px-4 py-2 rounded hover:bg-slate-800"
+                >
                   Sign In
                 </button>
               )}
@@ -184,7 +242,10 @@ export default function HomePage() {
           <div className="bg-gradient-to-r from-blue-600/20 to-purple-600/20 border border-blue-500/30 rounded-2xl p-8">
             <h3 className="text-2xl font-bold text-white mb-4">Ready to Start Predicting?</h3>
             <p className="text-slate-300 mb-6">Join the alpha access program and start earning prediction points</p>
-            <button className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-8 py-3 rounded-lg text-lg font-semibold">
+            <button 
+              onClick={() => setShowAuthModal(true)}
+              className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-8 py-3 rounded-lg text-lg font-semibold"
+            >
               🚀 Get Alpha Access
             </button>
           </div>
