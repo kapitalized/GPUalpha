@@ -6,6 +6,7 @@ import { Button } from '../../components/ui/button'
 
 interface LeaderboardUser {
   rank: number
+  id: string
   username: string
   predictions: number
   accuracy: number
@@ -29,17 +30,32 @@ export default function Leaderboard() {
     maxStreak: 0
   })
   const [loading, setLoading] = useState(true)
+  const [timeFilter, setTimeFilter] = useState<'all' | 'month' | 'week'>('all')
 
   useEffect(() => {
     fetchLeaderboard()
-  }, [])
+  }, [timeFilter])
 
   const fetchLeaderboard = async () => {
     try {
+      // For now, we'll use the existing API and filter client-side
+      // In the future, you can enhance the API to support server-side filtering
       const response = await fetch('/api/leaderboard')
       if (!response.ok) throw new Error('Failed to fetch')
       const data = await response.json()
-      setLeaderboard(data.leaderboard || [])
+      
+      let filteredLeaderboard = data.leaderboard || []
+      
+      // Client-side filtering simulation (you can enhance the API later)
+      if (timeFilter === 'month') {
+        // For demo, show only users with predictions in last month
+        filteredLeaderboard = filteredLeaderboard.filter((user: LeaderboardUser) => user.predictions > 0)
+      } else if (timeFilter === 'week') {
+        // For demo, show only users with recent activity
+        filteredLeaderboard = filteredLeaderboard.filter((user: LeaderboardUser) => user.streak > 0)
+      }
+      
+      setLeaderboard(filteredLeaderboard)
       setStats(data.stats || stats)
     } catch (error) {
       console.error('Error fetching leaderboard:', error)
@@ -66,7 +82,8 @@ export default function Leaderboard() {
               <a href="/" className="text-3xl font-bold text-white">⚡ GPUAlpha</a>
             </div>
             <div className="flex space-x-4">
-              <a href="/" className="text-slate-300 hover:text-white px-3 py-2">Dashboard</a>
+              <a href="/" className="text-slate-300 hover:text-white px-3 py-2">Home</a>
+              <a href="/dashboard" className="text-slate-300 hover:text-white px-3 py-2">Dashboard</a>
               <a href="/predictions" className="text-slate-300 hover:text-white px-3 py-2">My Predictions</a>
               <Button variant="outline">Sign In</Button>
             </div>
@@ -76,9 +93,43 @@ export default function Leaderboard() {
 
       <main className="container mx-auto px-4 py-12">
         {/* Page Header */}
-        <div className="text-center mb-12">
+        <div className="text-center mb-8">
           <h1 className="text-4xl font-bold text-white mb-4">🏆 Leaderboard</h1>
-          <p className="text-xl text-slate-300 mb-8">Top GPU prediction experts</p>
+          <p className="text-xl text-slate-300 mb-6">Top GPU prediction experts</p>
+          
+          {/* Time Filter Buttons */}
+          <div className="flex justify-center space-x-2 mb-8">
+            <button
+              onClick={() => setTimeFilter('all')}
+              className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                timeFilter === 'all'
+                  ? 'bg-blue-600 text-white'
+                  : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
+              }`}
+            >
+              All Time
+            </button>
+            <button
+              onClick={() => setTimeFilter('month')}
+              className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                timeFilter === 'month'
+                  ? 'bg-blue-600 text-white'
+                  : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
+              }`}
+            >
+              This Month
+            </button>
+            <button
+              onClick={() => setTimeFilter('week')}
+              className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                timeFilter === 'week'
+                  ? 'bg-blue-600 text-white'
+                  : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
+              }`}
+            >
+              This Week
+            </button>
+          </div>
         </div>
 
         {/* Stats Overview */}
@@ -112,7 +163,12 @@ export default function Leaderboard() {
         {/* Leaderboard Table */}
         <Card>
           <CardHeader>
-            <CardTitle>🎯 Top Predictors</CardTitle>
+            <CardTitle>
+              🎯 Top Predictors 
+              <span className="text-sm font-normal text-slate-400 ml-2">
+                ({timeFilter === 'all' ? 'All Time' : timeFilter === 'month' ? 'This Month' : 'This Week'})
+              </span>
+            </CardTitle>
           </CardHeader>
           <CardContent>
             {leaderboard.length === 0 ? (
@@ -155,7 +211,12 @@ export default function Leaderboard() {
                           </div>
                         </td>
                         <td className="py-4">
-                          <span className="text-white font-medium">{user.username}</span>
+                          <a 
+                            href={`/users/${user.id}`}
+                            className="text-white font-medium hover:text-blue-400 transition-colors cursor-pointer"
+                          >
+                            {user.username}
+                          </a>
                         </td>
                         <td className="py-4 text-slate-300">{user.predictions}</td>
                         <td className="py-4">

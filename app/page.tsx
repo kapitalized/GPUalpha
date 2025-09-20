@@ -1,3 +1,8 @@
+/*
+ * File: app/page.tsx
+ * Function: Homepage with GPU prediction interface, enhanced navigation with dashboard links and user points
+ */
+
 'use client'
 
 import { useState, useEffect } from 'react'
@@ -131,12 +136,17 @@ export default function HomePage() {
               <span className="text-sm bg-blue-600 text-white px-2 py-1 rounded">BETA</span>
             </div>
             <div className="flex space-x-4">
-              <button className="text-slate-300 hover:text-white px-3 py-2">Dashboard</button>
+              <button className="text-slate-300 hover:text-white px-3 py-2">Home</button>
               <a href="/leaderboard" className="text-slate-300 hover:text-white px-3 py-2">Leaderboard</a>
               <a href="/predictions" className="text-slate-300 hover:text-white px-3 py-2">My Predictions</a>
+              {user && (
+                <a href="/dashboard" className="text-slate-300 hover:text-white px-3 py-2">Dashboard</a>
+              )}
               {user ? (
                 <div className="flex items-center space-x-3">
-                  <span className="text-slate-300">Welcome, {user.username || user.email}</span>
+                  <span className="text-slate-300">
+                    Welcome, {user.username || user.email} • {user.points} pts
+                  </span>
                   <button 
                     onClick={() => signOut()}
                     className="border border-slate-700 text-white px-4 py-2 rounded hover:bg-slate-800"
