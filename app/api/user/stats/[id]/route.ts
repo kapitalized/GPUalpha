@@ -1,3 +1,8 @@
+/*
+ * File: app/api/user/stats/[id]/route.ts
+ * Function: Get user stats with error handling for missing users
+ */
+
 import { NextResponse } from 'next/server'
 import { supabase } from '../../../../../lib/supabase'
 
@@ -7,17 +12,30 @@ export async function GET(
 ) {
   try {
     const userId = params.id
+    console.log('Fetching stats for user ID:', userId)
 
-    // Get user profile
+    // First, check if user exists
     const { data: user, error: userError } = await supabase
       .from('users')
       .select('*')
       .eq('id', userId)
       .single()
 
-    if (userError) throw userError
+    if (userError) {
+      console.error('User lookup error:', userError)
+      if (userError.code === 'PGRST116') {
+        // User not found
+        return NextResponse.json(
+          { error: 'User not found' },
+          { status: 404 }
+        )
+      }
+      throw userError
+    }
 
-    // Get user's predictions with GPU details
+    console.log('Found user:', user.username || user.email)
+
+    // Get user's predictions with GPU details (with error handling)
     const { data: predictions, error: predictionsError } = await supabase
       .from('predictions')
       .select(`
@@ -32,18 +50,23 @@ export async function GET(
       .eq('user_id', userId)
       .order('created_at', { ascending: false })
 
-    if (predictionsError) throw predictionsError
+    if (predictionsError) {
+      console.error('Predictions error:', predictionsError)
+      // Don't fail completely, just return empty predictions
+    }
 
-    // Calculate stats
-    const totalPredictions = predictions?.length || 0
-    const resolvedPredictions = predictions?.filter(p => p.is_resolved) || []
-    const pendingPredictions = predictions?.filter(p => !p.is_resolved) || []
+    const safePredicitions = predictions || []
+
+    // Calculate stats safely
+    const totalPredictions = safePredicitions.length
+    const resolvedPredictions = safePredicitions.filter(p => p.is_resolved) || []
+    const pendingPredictions = safePredicitions.filter(p => !p.is_resolved) || []
     
     const averageAccuracy = resolvedPredictions.length > 0
       ? resolvedPredictions.reduce((sum, p) => sum + (p.accuracy_score || 0), 0) / resolvedPredictions.length
       : 0
 
-    const totalPointsEarned = predictions?.reduce((sum, p) => sum + (p.points_earned || 0), 0) || 0
+    const totalPointsEarned = safePredicitions.reduce((sum, p) => sum + (p.points_earned || 0), 0)
 
     // Get accuracy over time (last 10 predictions)
     const recentPredictions = resolvedPredictions.slice(0, 10).reverse()
@@ -51,39 +74,40 @@ export async function GET(
       predictionNumber: index + 1,
       accuracy: p.accuracy_score || 0,
       date: p.created_at,
-      gpu: `${p.gpus.brand} ${p.gpus.model}`
+      gpu: p.gpus ? `${p.gpus.brand} ${p.gpus.model}` : 'Unknown GPU'
     }))
 
-    // Get user's rank
+    // Get user's rank (simplified)
     const { data: allUsers, error: rankError } = await supabase
       .from('users')
       .select('id, points')
       .order('points', { ascending: false })
 
-    if (rankError) throw rankError
-
-    const userRank = allUsers?.findIndex(u => u.id === userId) + 1 || 0
+    let userRank = 0
+    if (!rankError && allUsers) {
+      userRank = allUsers.findIndex(u => u.id === userId) + 1
+    }
 
     // Get prediction distribution by timeframe
     const timeframeStats = {
-      '7d': predictions?.filter(p => p.timeframe === '7d').length || 0,
-      '30d': predictions?.filter(p => p.timeframe === '30d').length || 0,
-      '90d': predictions?.filter(p => p.timeframe === '90d').length || 0
+      '7d': safePredicitions.filter(p => p.timeframe === '7d').length,
+      '30d': safePredicitions.filter(p => p.timeframe === '30d').length,
+      '90d': safePredicitions.filter(p => p.timeframe === '90d').length
     }
 
     // Get recent activity (last 5 predictions)
-    const recentActivity = predictions?.slice(0, 5).map(p => ({
+    const recentActivity = safePredicitions.slice(0, 5).map(p => ({
       id: p.id,
-      gpu: `${p.gpus.brand} ${p.gpus.model}`,
+      gpu: p.gpus ? `${p.gpus.brand} ${p.gpus.model}` : 'Unknown GPU',
       predictedPrice: p.predicted_price,
-      currentPrice: p.gpus.current_price,
+      currentPrice: p.gpus?.current_price || 0,
       timeframe: p.timeframe,
       confidence: p.confidence,
       created_at: p.created_at,
       is_resolved: p.is_resolved,
       accuracy_score: p.accuracy_score,
       points_earned: p.points_earned
-    })) || []
+    }))
 
     const stats = {
       user: {
@@ -95,21 +119,26 @@ export async function GET(
         resolvedPredictions: resolvedPredictions.length,
         pendingPredictions: pendingPredictions.length,
         averageAccuracy: Math.round(averageAccuracy * 100) / 100,
-        totalPoints: user.points,
+        totalPoints: user.points || 0,
         totalPointsEarned,
-        currentStreak: user.prediction_streak
+        currentStreak: user.prediction_streak || 0
       },
       accuracyHistory,
       timeframeStats,
       recentActivity
     }
 
+    console.log('Returning stats for user:', user.username || user.email)
     return NextResponse.json(stats)
 
   } catch (error) {
-    console.error('Error fetching user stats:', error)
+    console.error('Detailed error in user stats API:', error)
     return NextResponse.json(
-      { error: 'Failed to fetch user stats' },
+      { 
+        error: 'Failed to fetch user stats',
+        details: error instanceof Error ? error.message : 'Unknown error',
+        userId: params.id
+      },
       { status: 500 }
     )
   }
