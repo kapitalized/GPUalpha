@@ -76,6 +76,38 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         .eq('id', userId)
         .single()
       
+      if (error && error.code === 'PGRST116') {
+        // User profile doesn't exist, create it
+        console.log('User profile not found, creating one...')
+        
+        // Get email from auth user
+        const { data: authUser } = await supabase.auth.getUser()
+        if (authUser.user) {
+          const { error: createError } = await supabase
+            .from('users')
+            .insert({
+              id: userId,
+              email: authUser.user.email || '',
+              username: authUser.user.user_metadata?.username || authUser.user.email?.split('@')[0] || 'User',
+              points: 0,
+              accuracy_score: 0,
+              prediction_streak: 0
+            })
+          
+          if (!createError) {
+            // Fetch the newly created profile
+            const { data: newProfile } = await supabase
+              .from('users')
+              .select('*')
+              .eq('id', userId)
+              .single()
+            
+            setUser(newProfile)
+            return
+          }
+        }
+      }
+      
       if (error && error.code !== 'PGRST116') {
         console.error('Error fetching user profile:', error)
         return
@@ -89,6 +121,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signUp = async (email: string, password: string, username: string) => {
     try {
+      console.log('Signing up user:', email, username)
+      
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
@@ -99,10 +133,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
       })
       
-      if (error) return { error }
+      if (error) {
+        console.error('Auth signup error:', error)
+        return { error }
+      }
+      
+      console.log('Auth signup successful, user:', data.user?.id)
       
       // Create user profile if signup successful
       if (data.user && !error) {
+        console.log('Creating user profile...')
+        
         const { error: profileError } = await supabase
           .from('users')
           .insert({
@@ -116,11 +157,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         
         if (profileError) {
           console.error('Error creating profile:', profileError)
+          // Don't fail the signup, but log the error
+        } else {
+          console.log('User profile created successfully')
         }
       }
       
       return { error: null }
     } catch (error) {
+      console.error('Signup catch error:', error)
       return { error }
     }
   }
