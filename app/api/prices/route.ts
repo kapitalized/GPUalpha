@@ -38,10 +38,14 @@ export async function GET(request: Request) {
       
       return NextResponse.json(gpus)
     }
-  } catch (error) {
+  } catch (error: any) {
     console.error('Database error:', error)
     return NextResponse.json(
-      { error: 'Failed to fetch GPU data' },
+      { 
+        error: 'Failed to fetch GPU data',
+        details: error?.message || 'Unknown error',
+        hint: error?.code === '42P01' ? 'Database table "gpus" does not exist. Please run the SQL schema migration.' : undefined
+      },
       { status: 500 }
     )
   }

@@ -1,6 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Your Next.js config options go here
+  // Transpile Supabase package
+  transpilePackages: ['@supabase/supabase-js'],
 }
 
 module.exports = nextConfig

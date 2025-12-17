@@ -21,7 +21,7 @@ export async function GET() {
     if (error) throw error
     
     // Format leaderboard data
-    const leaderboard = userStats.map((user, index) => ({
+    const leaderboard = (userStats || []).map((user: any, index: number) => ({
       rank: index + 1,
       id: user.id,
       username: user.username || user.email.split('@')[0],
@@ -47,11 +47,11 @@ export async function GET() {
       .gt('accuracy_score', 0)
     
     const avgScore = avgAccuracy && avgAccuracy.length > 0 
-      ? avgAccuracy.reduce((sum, user) => sum + (user.accuracy_score || 0), 0) / avgAccuracy.length
+      ? avgAccuracy.reduce((sum: number, user: any) => sum + (user.accuracy_score || 0), 0) / avgAccuracy.length
       : 0
     
     const maxStreak = leaderboard.length > 0 
-      ? Math.max(...leaderboard.map(user => user.streak))
+      ? Math.max(...leaderboard.map((user: any) => user.streak))
       : 0
     
     const stats = {

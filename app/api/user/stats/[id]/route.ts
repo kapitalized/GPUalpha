@@ -59,18 +59,18 @@ export async function GET(
 
     // Calculate stats safely
     const totalPredictions = safePredicitions.length
-    const resolvedPredictions = safePredicitions.filter(p => p.is_resolved) || []
-    const pendingPredictions = safePredicitions.filter(p => !p.is_resolved) || []
+    const resolvedPredictions = safePredicitions.filter((p: any) => p.is_resolved) || []
+    const pendingPredictions = safePredicitions.filter((p: any) => !p.is_resolved) || []
     
     const averageAccuracy = resolvedPredictions.length > 0
-      ? resolvedPredictions.reduce((sum, p) => sum + (p.accuracy_score || 0), 0) / resolvedPredictions.length
+      ? resolvedPredictions.reduce((sum: number, p: any) => sum + (p.accuracy_score || 0), 0) / resolvedPredictions.length
       : 0
 
-    const totalPointsEarned = safePredicitions.reduce((sum, p) => sum + (p.points_earned || 0), 0)
+    const totalPointsEarned = safePredicitions.reduce((sum: number, p: any) => sum + (p.points_earned || 0), 0)
 
     // Get accuracy over time (last 10 predictions)
     const recentPredictions = resolvedPredictions.slice(0, 10).reverse()
-    const accuracyHistory = recentPredictions.map((p, index) => ({
+    const accuracyHistory = recentPredictions.map((p: any, index: number) => ({
       predictionNumber: index + 1,
       accuracy: p.accuracy_score || 0,
       date: p.created_at,
@@ -85,18 +85,18 @@ export async function GET(
 
     let userRank = 0
     if (!rankError && allUsers) {
-      userRank = allUsers.findIndex(u => u.id === userId) + 1
+      userRank = allUsers.findIndex((u: any) => u.id === userId) + 1
     }
 
     // Get prediction distribution by timeframe
     const timeframeStats = {
-      '7d': safePredicitions.filter(p => p.timeframe === '7d').length,
-      '30d': safePredicitions.filter(p => p.timeframe === '30d').length,
-      '90d': safePredicitions.filter(p => p.timeframe === '90d').length
+      '7d': safePredicitions.filter((p: any) => p.timeframe === '7d').length,
+      '30d': safePredicitions.filter((p: any) => p.timeframe === '30d').length,
+      '90d': safePredicitions.filter((p: any) => p.timeframe === '90d').length
     }
 
     // Get recent activity (last 5 predictions)
-    const recentActivity = safePredicitions.slice(0, 5).map(p => ({
+    const recentActivity = safePredicitions.slice(0, 5).map((p: any) => ({
       id: p.id,
       gpu: p.gpus ? `${p.gpus.brand} ${p.gpus.model}` : 'Unknown GPU',
       predictedPrice: p.predicted_price,

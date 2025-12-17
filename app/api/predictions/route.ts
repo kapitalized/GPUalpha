@@ -46,19 +46,22 @@ export async function POST(request: Request) {
     const body = await request.json()
     const { user_id, gpu_id, predicted_price, timeframe, confidence, reasoning } = body
     
-    // Validate required fields
-    if (!user_id || !gpu_id || !predicted_price || !timeframe || !confidence) {
+    // Validate required fields (user_id is optional for anonymous predictions)
+    if (!gpu_id || !predicted_price || !timeframe || !confidence) {
       return NextResponse.json(
         { error: 'Missing required fields' },
         { status: 400 }
       )
     }
     
+    // Use anonymous user ID if not provided
+    const finalUserId = user_id || '00000000-0000-0000-0000-000000000000'
+    
     // Insert prediction
     const { data: prediction, error } = await supabase
       .from('predictions')
       .insert({
-        user_id,
+        user_id: finalUserId,
         gpu_id,
         predicted_price: parseFloat(predicted_price),
         timeframe,

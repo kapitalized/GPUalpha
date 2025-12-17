@@ -139,10 +139,14 @@ export default function Dashboard() {
           <div className="flex items-center justify-between">
             <a href="/" className="text-3xl font-bold text-white">⚡ GPUAlpha</a>
             <div className="flex space-x-4">
-              <a href="/" className="text-slate-300 hover:text-white px-3 py-2">Home</a>
+              <a href="/overview" className="text-slate-300 hover:text-white px-3 py-2">Overview</a>
+              <a href="/" className="text-slate-300 hover:text-white px-3 py-2">Index</a>
+              <a href="/info" className="text-slate-300 hover:text-white px-3 py-2">Info</a>
+              <a href="/history" className="text-slate-300 hover:text-white px-3 py-2">History</a>
+              <a href="/analytics" className="text-slate-300 hover:text-white px-3 py-2">Analytics</a>
               <a href="/leaderboard" className="text-slate-300 hover:text-white px-3 py-2">Leaderboard</a>
-              <a href="/predictions" className="text-slate-300 hover:text-white px-3 py-2">My Predictions</a>
-              <span className="text-slate-300 px-3 py-2">Dashboard</span>
+              <a href="/predictions" className="text-slate-300 hover:text-white px-3 py-2">Predictions</a>
+              <span className="text-slate-300 px-3 py-2 border-b-2 border-blue-500">Dashboard</span>
             </div>
           </div>
         </div>

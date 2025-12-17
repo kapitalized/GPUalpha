@@ -80,9 +80,13 @@ export default function MyPredictions() {
           <div className="flex items-center justify-between">
             <a href="/" className="text-3xl font-bold text-white">⚡ GPUAlpha</a>
             <div className="flex space-x-4">
-              <a href="/" className="text-slate-300 hover:text-white px-3 py-2">Dashboard</a>
+              <a href="/overview" className="text-slate-300 hover:text-white px-3 py-2">Overview</a>
+              <a href="/" className="text-slate-300 hover:text-white px-3 py-2">Index</a>
+              <a href="/info" className="text-slate-300 hover:text-white px-3 py-2">Info</a>
+              <a href="/history" className="text-slate-300 hover:text-white px-3 py-2">History</a>
+              <a href="/analytics" className="text-slate-300 hover:text-white px-3 py-2">Analytics</a>
               <a href="/leaderboard" className="text-slate-300 hover:text-white px-3 py-2">Leaderboard</a>
-              <button className="border border-slate-700 text-white px-4 py-2 rounded hover:bg-slate-800">Sign In</button>
+              <a href="/predictions" className="text-slate-300 hover:text-white px-3 py-2 border-b-2 border-blue-500">Predictions</a>
             </div>
           </div>
         </div>
