@@ -5,7 +5,14 @@ import { supabase } from '../../../../lib/supabase'
 export async function POST(request: Request) {
   try {
     const authHeader = request.headers.get('authorization')
-    const expectedToken = process.env.CRON_SECRET || 'gpu-alpha-price-update-secret'
+    const expectedToken = process.env.CRON_SECRET
+    
+    if (!expectedToken) {
+      return NextResponse.json(
+        { error: 'CRON_SECRET not configured' },
+        { status: 500 }
+      )
+    }
     
     if (authHeader !== `Bearer ${expectedToken}`) {
       return NextResponse.json(

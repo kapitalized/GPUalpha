@@ -24,9 +24,25 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
-# local env files
+# local env files - NEVER COMMIT THESE
 .env*.local
 .env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Supabase keys and secrets (extra protection)
+*service*role*
+*SUPABASE_SERVICE_ROLE*
+*.key
+*.secret
+*secret*
+*key*
+
+# Any file containing credentials
+*credentials*
+*config.local*
 
 # vercel
 .vercel

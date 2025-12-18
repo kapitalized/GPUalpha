@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { supabase } from '../../../../lib/supabase'
+import { supabaseServiceRole } from '../../../../lib/supabase'
 
 /**
  * Refresh materialized views for price aggregates
@@ -9,9 +9,16 @@ import { supabase } from '../../../../lib/supabase'
  */
 export async function POST(request: Request) {
   try {
-    // Verify authorization (optional - add your own auth logic)
+    // Verify authorization
     const authHeader = request.headers.get('authorization')
-    const expectedToken = process.env.CRON_SECRET || 'gpu-alpha-refresh-secret'
+    const expectedToken = process.env.CRON_SECRET
+    
+    if (!expectedToken) {
+      return NextResponse.json(
+        { error: 'CRON_SECRET not configured' },
+        { status: 500 }
+      )
+    }
     
     if (authHeader !== `Bearer ${expectedToken}`) {
       return NextResponse.json(
@@ -20,8 +27,16 @@ export async function POST(request: Request) {
       )
     }
 
+    // Use service role client for admin operations
+    if (!supabaseServiceRole) {
+      return NextResponse.json(
+        { error: 'Service role key not configured' },
+        { status: 500 }
+      )
+    }
+
     // Refresh materialized views
-    const { error } = await supabase.rpc('refresh_price_aggregates')
+    const { error } = await supabaseServiceRole.rpc('refresh_price_aggregates')
 
     if (error) {
       console.error('Error refreshing aggregates:', error)
