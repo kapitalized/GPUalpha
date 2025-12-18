@@ -78,7 +78,7 @@ async function calculateIndices(): Promise<IndexData> {
   // Calculate sub-indices
   const calculateSubIndex = (gpuList: any[]) => {
     if (gpuList.length === 0) return baseIndex
-    const total = gpuList.reduce((sum, gpu) => sum + gpu.weight, 0)
+    const total = gpuList.reduce((sum: number, gpu: any) => sum + gpu.weight, 0)
     const avg = total / gpuList.length
     return (avg / 1000) * 1000
   }

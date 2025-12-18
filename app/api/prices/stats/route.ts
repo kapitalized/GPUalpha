@@ -58,8 +58,8 @@ export async function GET(request: Request) {
       )
     }
 
-    const prices = priceHistory.map(h => parseFloat(h.price))
-    const avg = prices.reduce((a, b) => a + b, 0) / prices.length
+    const prices = priceHistory.map((h: { price: number | string }) => parseFloat(String(h.price)))
+    const avg = prices.reduce((a: number, b: number) => a + b, 0) / prices.length
     const min = Math.min(...prices)
     const max = Math.max(...prices)
     const priceChange = max - min

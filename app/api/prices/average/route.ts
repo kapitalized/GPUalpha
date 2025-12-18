@@ -57,7 +57,7 @@ export async function GET(request: Request) {
       )
     }
 
-    const average = priceHistory.reduce((sum, h) => sum + parseFloat(h.price), 0) / priceHistory.length
+    const average = priceHistory.reduce((sum: number, h: { price: number | string }) => sum + parseFloat(String(h.price)), 0) / priceHistory.length
 
     return NextResponse.json({
       gpu_id: gpuId,
