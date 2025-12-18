@@ -116,24 +116,30 @@ async function calculateIndices(): Promise<IndexData> {
     .lt('recorded_at', new Date(Date.now() - 29 * 24 * 60 * 60 * 1000).toISOString())
 
   // Calculate average prices for change calculations
-  const calculateAveragePrice = (history: any[]) => {
+  interface PriceHistoryItem {
+    price: number
+    recorded_at: string
+    gpu_id: string
+  }
+
+  const calculateAveragePrice = (history: PriceHistoryItem[] | null) => {
     if (!history || history.length === 0) return baseIndex
-    const sum = history.reduce((acc, h) => acc + h.price, 0)
+    const sum = history.reduce((acc: number, h: PriceHistoryItem) => acc + h.price, 0)
     return sum / history.length
   }
 
-  const currentAvg = calculateAveragePrice(recentHistory || [])
-  const weekAgoAvg = calculateAveragePrice(weekAgoHistory || [])
-  const monthAgoAvg = calculateAveragePrice(monthAgoHistory || [])
+  const currentAvg = calculateAveragePrice(recentHistory)
+  const weekAgoAvg = calculateAveragePrice(weekAgoHistory)
+  const monthAgoAvg = calculateAveragePrice(monthAgoHistory)
 
   const change7d = weekAgoAvg > 0 ? ((currentAvg - weekAgoAvg) / weekAgoAvg) * 100 : 0
   const change30d = monthAgoAvg > 0 ? ((currentAvg - monthAgoAvg) / monthAgoAvg) * 100 : 0
 
   // Calculate volatility (standard deviation of price changes)
-  const prices = recentHistory?.map(h => h.price) || []
-  const mean = prices.length > 0 ? prices.reduce((a, b) => a + b, 0) / prices.length : baseIndex
+  const prices = recentHistory?.map((h: PriceHistoryItem) => h.price) || []
+  const mean = prices.length > 0 ? prices.reduce((a: number, b: number) => a + b, 0) / prices.length : baseIndex
   const variance = prices.length > 0 
-    ? prices.reduce((acc, price) => acc + Math.pow(price - mean, 2), 0) / prices.length 
+    ? prices.reduce((acc: number, price: number) => acc + Math.pow(price - mean, 2), 0) / prices.length 
     : 0
   const volatility = Math.sqrt(variance) / mean * 100 // Coefficient of variation
 
