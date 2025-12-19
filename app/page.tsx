@@ -32,34 +32,36 @@ interface IndexData {
   volatility: number
 }
 
+// Note: SEO metadata is defined in app/layout.tsx (root layout)
+// This page uses the default metadata from root layout
 export default function HomePage() {
   const [gpus, setGpus] = useState<GPU[]>([])
   const [indexData, setIndexData] = useState<IndexData | null>(null)
   const [loading, setLoading] = useState(true)
-  const [selectedGPU, setSelectedGPU] = useState<GPU | null>(null)
-  const [showPredictionModal, setShowPredictionModal] = useState(false)
-  
-  // Prediction form state
+  const [selectedGpu, setSelectedGpu] = useState<GPU | null>(null)
   const [predictedPrice, setPredictedPrice] = useState('')
-  const [timeframe, setTimeframe] = useState('7d')
-  const [confidence, setConfidence] = useState(50)
+  const [timeframe, setTimeframe] = useState<'7d' | '30d' | '90d'>('7d')
+  const [confidence, setConfidence] = useState('50')
   const [reasoning, setReasoning] = useState('')
-  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [showUpdateModal, setShowUpdateModal] = useState(false)
 
   useEffect(() => {
     fetchGPUs()
     fetchIndexData()
-    // Refresh index data every 5 minutes
-    const interval = setInterval(fetchIndexData, 5 * 60 * 1000)
+    const interval = setInterval(() => {
+      fetchGPUs()
+      fetchIndexData()
+    }, 5 * 60 * 1000) // Refresh every 5 minutes
     return () => clearInterval(interval)
   }, [])
 
   const fetchGPUs = async () => {
     try {
       const response = await fetch('/api/prices')
-      if (!response.ok) throw new Error('Failed to fetch')
-      const data = await response.json()
-      setGpus(data)
+      if (response.ok) {
+        const data = await response.json()
+        setGpus(data)
+      }
     } catch (error) {
       console.error('Error fetching GPUs:', error)
     } finally {
@@ -78,68 +80,39 @@ export default function HomePage() {
       console.error('Error fetching index data:', error)
     }
   }
-  
-  const handlePredict = (gpu: GPU) => {
-    // No auth required - allow anonymous predictions
-    setSelectedGPU(gpu)
-    setShowPredictionModal(true)
-  }
 
-  const handleModalClose = () => {
-    setShowPredictionModal(false)
-    setSelectedGPU(null)
-    // Reset form
-    setPredictedPrice('')
-    setReasoning('')
-    setConfidence(50)
-  }
+  const handlePredict = async () => {
+    if (!selectedGpu || !predictedPrice) {
+      alert('Please select a GPU and enter a predicted price')
+      return
+    }
 
-  const handlePredictionSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!selectedGPU) return
-
-    setIsSubmitting(true)
-    
     try {
-      // Use anonymous user ID for testing
-      const anonymousUserId = '00000000-0000-0000-0000-000000000000'
-      
       const response = await fetch('/api/predictions', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          user_id: anonymousUserId,
-          gpu_id: selectedGPU.id,
+          gpu_id: selectedGpu.id,
           predicted_price: parseFloat(predictedPrice),
           timeframe,
-          confidence,
-          reasoning: reasoning || null
+          confidence: parseInt(confidence),
+          reasoning: reasoning || undefined
         })
       })
 
-      if (!response.ok) {
-        const errorData = await response.json()
-        throw new Error(errorData.error || 'Failed to save prediction')
+      if (response.ok) {
+        alert('Prediction submitted successfully!')
+        setSelectedGpu(null)
+        setPredictedPrice('')
+        setReasoning('')
+        setConfidence('50')
+      } else {
+        const error = await response.json()
+        alert(`Error: ${error.error || 'Failed to submit prediction'}`)
       }
-
-      const result = await response.json()
-      console.log('Prediction saved:', result)
-      
-      // Show success message with navigation option
-      const viewPredictions = confirm(`🎯 Prediction saved successfully!\n\nGPU: ${selectedGPU.brand} ${selectedGPU.model}\nPredicted Price: $${predictedPrice}\nTimeframe: ${timeframe}\nConfidence: ${confidence}%\n\nWould you like to view all predictions?`)
-      
-      if (viewPredictions) {
-        window.location.href = '/predictions'
-      }
-
-      handleModalClose()
     } catch (error) {
-      console.error('Error saving prediction:', error)
-      alert(`❌ Failed to save prediction: ${error instanceof Error ? error.message : 'Unknown error'}`)
-    } finally {
-      setIsSubmitting(false)
+      console.error('Error submitting prediction:', error)
+      alert('Failed to submit prediction')
     }
   }
 
@@ -174,302 +147,227 @@ export default function HomePage() {
       </header>
 
       <main className="container mx-auto px-4 py-12">
-        {/* Manual Price Update Component */}
-        <ManualPriceUpdate />
-        
+        {/* Hero Section */}
         <div className="text-center mb-12">
           <h1 className="text-5xl font-bold text-white mb-4">
-            GPU <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-600">Compute Price Index</span>
+            GPU Compute Price Index
           </h1>
-          <p className="text-xl text-slate-300 mb-8 max-w-2xl mx-auto">
-            Real-time compute infrastructure pricing and market intelligence for AI infrastructure
+          <p className="text-xl text-slate-300 mb-8">
+            Real-time market intelligence for GPU compute pricing
           </p>
+          
+          {indexData && (
+            <div className="bg-slate-800/50 rounded-lg p-6 mb-8">
+              <div className="text-4xl font-bold text-white mb-2">
+                {indexData.gpuComputeIndex.toFixed(2)}
+              </div>
+              <div className="flex justify-center gap-6 text-sm">
+                <span className={`${indexData.change24h >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                  24h: {indexData.change24h >= 0 ? '+' : ''}{indexData.change24h.toFixed(2)}%
+                </span>
+                <span className={`${indexData.change7d >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                  7d: {indexData.change7d >= 0 ? '+' : ''}{indexData.change7d.toFixed(2)}%
+                </span>
+                <span className={`${indexData.change30d >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                  30d: {indexData.change30d >= 0 ? '+' : ''}{indexData.change30d.toFixed(2)}%
+                </span>
+                <span className="text-slate-400">
+                  Volatility: {indexData.volatility.toFixed(2)}%
+                </span>
+              </div>
+            </div>
+          )}
         </div>
 
-        {/* Index Dashboard */}
+        {/* Index Overview */}
         {indexData && (
-          <section className="mb-12">
-            <div className="bg-gradient-to-r from-blue-600/20 to-purple-600/20 border border-blue-500/30 rounded-2xl p-8">
-              <h2 className="text-2xl font-bold text-white mb-6 text-center">Market Indices</h2>
-              <div className="grid md:grid-cols-3 lg:grid-cols-5 gap-4">
-                <div className="bg-slate-900/50 rounded-lg p-4 text-center">
-                  <div className="text-slate-400 text-sm mb-2">GPU Compute Index</div>
-                  <div className="text-3xl font-bold text-white mb-1">{indexData.gpuComputeIndex.toFixed(2)}</div>
-                  <div className={`text-sm font-semibold ${indexData.change24h >= 0 ? 'text-green-400' : 'text-red-400'}`}>
-                    {indexData.change24h >= 0 ? '+' : ''}{indexData.change24h.toFixed(2)}% (24h)
-                  </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+            <Card className="bg-slate-800/50 border-slate-700">
+              <CardHeader>
+                <CardTitle className="text-slate-300 text-sm">GPU Compute Index</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-white">{indexData.gpuComputeIndex.toFixed(2)}</div>
+                <div className={`text-sm mt-1 ${indexData.change24h >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                  {indexData.change24h >= 0 ? '+' : ''}{indexData.change24h.toFixed(2)}% (24h)
                 </div>
-                <div className="bg-slate-900/50 rounded-lg p-4 text-center">
-                  <div className="text-slate-400 text-sm mb-2">High-End Index</div>
-                  <div className="text-2xl font-bold text-white mb-1">{indexData.highEndIndex.toFixed(2)}</div>
-                  <div className="text-xs text-slate-500">Premium GPUs</div>
-                </div>
-                <div className="bg-slate-900/50 rounded-lg p-4 text-center">
-                  <div className="text-slate-400 text-sm mb-2">Mid-Range Index</div>
-                  <div className="text-2xl font-bold text-white mb-1">{indexData.midRangeIndex.toFixed(2)}</div>
-                  <div className="text-xs text-slate-500">Mainstream GPUs</div>
-                </div>
-                <div className="bg-slate-900/50 rounded-lg p-4 text-center">
-                  <div className="text-slate-400 text-sm mb-2">NVIDIA Index</div>
-                  <div className="text-2xl font-bold text-white mb-1">{indexData.nvidiaIndex.toFixed(2)}</div>
-                  <div className="text-xs text-slate-500">NVIDIA GPUs</div>
-                </div>
-                <div className="bg-slate-900/50 rounded-lg p-4 text-center">
-                  <div className="text-slate-400 text-sm mb-2">AMD Index</div>
-                  <div className="text-2xl font-bold text-white mb-1">{indexData.amdIndex.toFixed(2)}</div>
-                  <div className="text-xs text-slate-500">AMD GPUs</div>
-                </div>
-              </div>
-              <div className="grid md:grid-cols-3 gap-4 mt-4">
-                <div className="bg-slate-900/50 rounded-lg p-4 text-center">
-                  <div className="text-slate-400 text-sm mb-2">7-Day Change</div>
-                  <div className={`text-2xl font-bold ${indexData.change7d >= 0 ? 'text-green-400' : 'text-red-400'}`}>
-                    {indexData.change7d >= 0 ? '+' : ''}{indexData.change7d.toFixed(2)}%
-                  </div>
-                </div>
-                <div className="bg-slate-900/50 rounded-lg p-4 text-center">
-                  <div className="text-slate-400 text-sm mb-2">30-Day Change</div>
-                  <div className={`text-2xl font-bold ${indexData.change30d >= 0 ? 'text-green-400' : 'text-red-400'}`}>
-                    {indexData.change30d >= 0 ? '+' : ''}{indexData.change30d.toFixed(2)}%
-                  </div>
-                </div>
-                <div className="bg-slate-900/50 rounded-lg p-4 text-center">
-                  <div className="text-slate-400 text-sm mb-2">Volatility</div>
-                  <div className="text-2xl font-bold text-yellow-400">
-                    {indexData.volatility.toFixed(2)}%
-                  </div>
-                </div>
-              </div>
-            </div>
-          </section>
+              </CardContent>
+            </Card>
+
+            <Card className="bg-slate-800/50 border-slate-700">
+              <CardHeader>
+                <CardTitle className="text-slate-300 text-sm">High-End Index</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-white">{indexData.highEndIndex.toFixed(2)}</div>
+                <div className="text-sm mt-1 text-slate-400">Premium GPUs</div>
+              </CardContent>
+            </Card>
+
+            <Card className="bg-slate-800/50 border-slate-700">
+              <CardHeader>
+                <CardTitle className="text-slate-300 text-sm">Mid-Range Index</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-white">{indexData.midRangeIndex.toFixed(2)}</div>
+                <div className="text-sm mt-1 text-slate-400">Value GPUs</div>
+              </CardContent>
+            </Card>
+
+            <Card className="bg-slate-800/50 border-slate-700">
+              <CardHeader>
+                <CardTitle className="text-slate-300 text-sm">NVIDIA Index</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-white">{indexData.nvidiaIndex.toFixed(2)}</div>
+                <div className="text-sm mt-1 text-slate-400">NVIDIA GPUs</div>
+              </CardContent>
+            </Card>
+          </div>
         )}
 
-        <section className="mb-12">
-          <h2 className="text-2xl font-bold text-white mb-6">📊 Current GPU Prices</h2>
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {gpus.map((gpu) => (
-              <div key={gpu.id} className="bg-slate-900/50 border border-slate-700 rounded-xl p-6 hover:bg-slate-800/50 transition-colors">
-                <div className="flex justify-between items-start mb-4">
-                  <div>
-                    <div className="text-blue-400 text-sm">{gpu.brand}</div>
-                    <div className="text-white text-xl font-semibold">{gpu.model}</div>
-                  </div>
-                  <div className={`text-xs px-2 py-1 rounded ${
-                    gpu.availability === 'in_stock' 
-                      ? 'bg-green-900 text-green-300' 
-                      : 'bg-red-900 text-red-300'
+        {/* GPU Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
+          {gpus.map((gpu) => (
+            <Card key={gpu.id} className="bg-slate-800/50 border-slate-700 hover:border-blue-500 transition-colors">
+              <CardHeader>
+                <CardTitle className="flex justify-between items-center">
+                  <span className="text-white text-xl">
+                    {gpu.brand} {gpu.model}
+                  </span>
+                  <span className={`text-xs px-2 py-1 rounded ${
+                    gpu.availability === 'in_stock' ? 'bg-green-500/20 text-green-400' :
+                    gpu.availability === 'limited' ? 'bg-yellow-500/20 text-yellow-400' :
+                    'bg-red-500/20 text-red-400'
                   }`}>
-                    {gpu.availability.replace('_', ' ')}
-                  </div>
-                </div>
-                
-                <div className="space-y-3 mb-6">
+                    {gpu.availability.replace('_', ' ').toUpperCase()}
+                  </span>
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-2">
                   <div className="flex justify-between">
-                    <span className="text-slate-400">Current Price:</span>
-                    <span className="text-white font-bold">${gpu.current_price}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-slate-400">MSRP:</span>
-                    <span className="text-slate-300">${gpu.msrp}</span>
+                    <span className="text-slate-400">Current Price</span>
+                    <span className="text-white font-bold">${gpu.current_price.toFixed(2)}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-slate-400">vs MSRP:</span>
+                    <span className="text-slate-400">MSRP</span>
+                    <span className="text-slate-300">${gpu.msrp.toFixed(2)}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-slate-400">Discount/Premium</span>
                     <span className={`font-semibold ${
-                      gpu.current_price > gpu.msrp ? 'text-red-400' : 'text-green-400'
+                      gpu.current_price < gpu.msrp ? 'text-green-400' : 'text-red-400'
                     }`}>
-                      {gpu.current_price > gpu.msrp ? '+' : ''}{(((gpu.current_price - gpu.msrp) / gpu.msrp) * 100).toFixed(1)}%
+                      {gpu.current_price < gpu.msrp ? '-' : '+'}
+                      ${Math.abs(gpu.current_price - gpu.msrp).toFixed(2)}
+                      ({((gpu.current_price - gpu.msrp) / gpu.msrp * 100).toFixed(1)}%)
                     </span>
                   </div>
+                  <Button
+                    onClick={() => setSelectedGpu(gpu)}
+                    className="w-full mt-4 bg-blue-600 hover:bg-blue-700"
+                  >
+                    Make Prediction
+                  </Button>
                 </div>
-                
-                <button 
-                  onClick={() => handlePredict(gpu)}
-                  className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white py-3 rounded-lg font-semibold hover:from-blue-700 hover:to-purple-700 transition-colors"
-                >
-                  Make Prediction 🎯
-                </button>
-              </div>
-            ))}
-          </div>
-        </section>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
 
-        <section className="grid md:grid-cols-3 gap-6 mb-12">
-          <div className="bg-slate-900/50 border border-slate-700 p-6 rounded-xl text-center">
-            <div className="text-3xl font-bold text-blue-400">{gpus.length}</div>
-            <div className="text-slate-400">GPUs Tracked</div>
-          </div>
-          <div className="bg-slate-900/50 border border-slate-700 p-6 rounded-xl text-center">
-            <div className="text-3xl font-bold text-green-400">
-              ${gpus.reduce((sum, gpu) => sum + gpu.current_price, 0).toLocaleString()}
-            </div>
-            <div className="text-slate-400">Total Market Value</div>
-          </div>
-          <div className="bg-slate-900/50 border border-slate-700 p-6 rounded-xl text-center">
-            <div className="text-3xl font-bold text-purple-400">
-              {gpus.filter(g => g.availability === 'in_stock').length}
-            </div>
-            <div className="text-slate-400">In Stock</div>
-          </div>
-        </section>
-
-        <section className="text-center">
-          <div className="bg-gradient-to-r from-blue-600/20 to-purple-600/20 border border-blue-500/30 rounded-2xl p-8">
-            <h3 className="text-2xl font-bold text-white mb-4">Ready to Start Predicting?</h3>
-            <p className="text-slate-300 mb-6">Start making predictions and track GPU price trends</p>
-            <a 
-              href="/history"
-              className="inline-block bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-8 py-3 rounded-lg text-lg font-semibold"
-            >
-              📊 View Price History
-            </a>
-          </div>
-        </section>
-      </main>
-
-      {/* Full Prediction Modal */}
-      {showPredictionModal && selectedGPU && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <Card className="w-full max-w-md">
-            <CardHeader>
-              <CardTitle className="flex justify-between items-center">
-                <span>Predict: {selectedGPU.brand} {selectedGPU.model}</span>
-                <button 
-                  onClick={handleModalClose} 
-                  className="text-slate-400 hover:text-white text-xl leading-none"
-                  disabled={isSubmitting}
-                >
-                  ✕
-                </button>
-              </CardTitle>
-              <p className="text-slate-400 text-sm">Current Price: ${selectedGPU.current_price}</p>
-            </CardHeader>
-            
-            <CardContent>
-              <form onSubmit={handlePredictionSubmit} className="space-y-6">
-                {/* Price Prediction */}
+        {/* Prediction Modal */}
+        {selectedGpu && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+            <Card className="bg-slate-800 border-slate-700 w-full max-w-md mx-4">
+              <CardHeader>
+                <CardTitle className="text-white">
+                  Predict Price: {selectedGpu.brand} {selectedGpu.model}
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-slate-300 mb-2">
-                    Predicted Price ($)
-                  </label>
+                  <label className="text-slate-300 block mb-2">Predicted Price ($)</label>
                   <input
                     type="number"
-                    step="0.01"
-                    min="0"
                     value={predictedPrice}
                     onChange={(e) => setPredictedPrice(e.target.value)}
-                    className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-md text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    placeholder="2499.99"
-                    required
-                    disabled={isSubmitting}
+                    className="w-full px-3 py-2 bg-slate-700 text-white rounded"
+                    placeholder={selectedGpu.current_price.toString()}
                   />
                 </div>
-
-                {/* Timeframe */}
                 <div>
-                  <label className="block text-sm font-medium text-slate-300 mb-2">
-                    Timeframe
-                  </label>
+                  <label className="text-slate-300 block mb-2">Timeframe</label>
                   <select
                     value={timeframe}
-                    onChange={(e) => setTimeframe(e.target.value)}
-                    className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-md text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    disabled={isSubmitting}
+                    onChange={(e) => setTimeframe(e.target.value as '7d' | '30d' | '90d')}
+                    className="w-full px-3 py-2 bg-slate-700 text-white rounded"
                   >
-                    <option value="7d">7 days</option>
-                    <option value="30d">30 days</option>
-                    <option value="90d">90 days</option>
+                    <option value="7d">7 Days</option>
+                    <option value="30d">30 Days</option>
+                    <option value="90d">90 Days</option>
                   </select>
                 </div>
-
-                {/* Confidence */}
                 <div>
-                  <label className="block text-sm font-medium text-slate-300 mb-2">
-                    Confidence: {confidence}%
-                  </label>
+                  <label className="text-slate-300 block mb-2">Confidence (0-100%)</label>
                   <input
-                    type="range"
-                    min="10"
+                    type="number"
+                    min="0"
                     max="100"
                     value={confidence}
-                    onChange={(e) => setConfidence(parseInt(e.target.value))}
-                    className="w-full accent-blue-500"
-                    disabled={isSubmitting}
+                    onChange={(e) => setConfidence(e.target.value)}
+                    className="w-full px-3 py-2 bg-slate-700 text-white rounded"
                   />
-                  <div className="flex justify-between text-xs text-slate-500 mt-1">
-                    <span>Low (10%)</span>
-                    <span>High (100%)</span>
-                  </div>
                 </div>
-
-                {/* Reasoning */}
                 <div>
-                  <label className="block text-sm font-medium text-slate-300 mb-2">
-                    Reasoning (Optional)
-                  </label>
+                  <label className="text-slate-300 block mb-2">Reasoning (Optional)</label>
                   <textarea
                     value={reasoning}
                     onChange={(e) => setReasoning(e.target.value)}
-                    className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-md text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 bg-slate-700 text-white rounded"
                     rows={3}
-                    placeholder="Why do you think the price will change?"
-                    maxLength={500}
-                    disabled={isSubmitting}
+                    placeholder="Explain your prediction..."
                   />
-                  <div className="text-xs text-slate-500 mt-1">
-                    {reasoning.length}/500 characters
-                  </div>
                 </div>
-
-                {/* Price Change Preview */}
-                {predictedPrice && (
-                  <div className="bg-slate-800 rounded-md p-3">
-                    <div className="text-sm text-slate-400 mb-2">Price Change Preview:</div>
-                    <div className="flex justify-between items-center">
-                      <span className="text-slate-300">Current → Predicted:</span>
-                      <div className="text-right">
-                        <div className="text-white font-semibold">
-                          ${selectedGPU.current_price} → ${parseFloat(predictedPrice).toFixed(2)}
-                        </div>
-                        <div className={`text-sm font-medium ${
-                          parseFloat(predictedPrice) > selectedGPU.current_price ? 'text-green-400' : 'text-red-400'
-                        }`}>
-                          {parseFloat(predictedPrice) > selectedGPU.current_price ? '+' : ''}
-                          {((parseFloat(predictedPrice) - selectedGPU.current_price) / selectedGPU.current_price * 100).toFixed(1)}%
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {/* Submit Buttons */}
-                <div className="flex space-x-3">
-                  <Button 
-                    type="button" 
-                    variant="outline" 
-                    onClick={handleModalClose} 
-                    className="flex-1"
-                    disabled={isSubmitting}
+                <div className="flex gap-2">
+                  <Button
+                    onClick={handlePredict}
+                    className="flex-1 bg-blue-600 hover:bg-blue-700"
+                  >
+                    Submit Prediction
+                  </Button>
+                  <Button
+                    onClick={() => setSelectedGpu(null)}
+                    className="flex-1 bg-slate-600 hover:bg-slate-700"
                   >
                     Cancel
                   </Button>
-                  <Button 
-                    type="submit" 
-                    className="flex-1 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
-                    disabled={isSubmitting || !predictedPrice}
-                  >
-                    {isSubmitting ? 'Submitting...' : 'Submit Prediction 🎯'}
-                  </Button>
                 </div>
-              </form>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+          </div>
+        )}
+
+        {/* CTA Section */}
+        <div className="text-center mt-12">
+          <h2 className="text-3xl font-bold text-white mb-4">Explore Market Insights</h2>
+          <p className="text-slate-300 mb-6">
+            Dive deeper into GPU market analytics, historical trends, and detailed specifications
+          </p>
+          <div className="flex gap-4 justify-center">
+            <a href="/analytics">
+              <Button className="bg-blue-600 hover:bg-blue-700">
+                View Analytics
+              </Button>
+            </a>
+            <a href="/history">
+              <Button className="bg-slate-700 hover:bg-slate-600">
+                Price History
+              </Button>
+            </a>
+          </div>
         </div>
-      )}
-
-
-      <footer className="bg-black/50 text-center py-8 mt-12">
-        <p className="text-slate-400">&copy; 2025 GPUAlpha. Generate alpha in GPU markets.</p>
-      </footer>
+      </main>
     </div>
   )
 }
