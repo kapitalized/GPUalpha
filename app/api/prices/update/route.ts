@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { supabase } from '../../../../lib/supabase'
-import { fetchVastAiPrices, aggregateVastAiPrices } from '../../../../lib/api/vastai'
+import { fetchVastAiPrices, aggregateVastAiPrices, hourlyToMonthly } from '../../../../lib/api/vastai'
 import { fetchLambdaLabsPrices, aggregateLambdaPrices } from '../../../../lib/api/lambdalabs'
 import { fetchRunPodPrices, aggregateRunPodPrices } from '../../../../lib/api/runpod'
 
@@ -95,13 +95,33 @@ export async function POST(request: Request) {
         const newPrice = priceData.avgPricePerMonth || priceData.pricePerMonth
         const source = (priceData as any).source || 'vastai'
         
-        // Update GPU price
+        // Build update object with all available data
+        const updateData: any = {
+          current_price: newPrice,
+          updated_at: new Date().toISOString()
+        }
+        
+        // Add extended specs if available
+        if ((priceData as any).avgCpuCores) updateData.cpu_cores = (priceData as any).avgCpuCores
+        if ((priceData as any).avgCpuRam) updateData.cpu_ram = (priceData as any).avgCpuRam
+        if ((priceData as any).commonCpuName) updateData.cpu_name = (priceData as any).commonCpuName
+        if ((priceData as any).avgDiskSpace) updateData.disk_space = (priceData as any).avgDiskSpace
+        if ((priceData as any).avgInetDown) updateData.inet_down = (priceData as any).avgInetDown
+        if ((priceData as any).avgInetUp) updateData.inet_up = (priceData as any).avgInetUp
+        if ((priceData as any).avgDlperf) updateData.dlperf = (priceData as any).avgDlperf
+        if ((priceData as any).maxCudaVersion) updateData.cuda_version = (priceData as any).maxCudaVersion
+        if ((priceData as any).avgReliability) updateData.reliability_score = (priceData as any).avgReliability
+        if ((priceData as any).providers) updateData.provider_count = (priceData as any).providers
+        if ((priceData as any).minPrice) updateData.price_range_min = hourlyToMonthly((priceData as any).minPrice)
+        if ((priceData as any).maxPrice) updateData.price_range_max = hourlyToMonthly((priceData as any).maxPrice)
+        
+        // Track data source
+        updateData.data_sources = [source]
+        
+        // Update GPU with extended data
         const { error: updateError } = await supabase
           .from('gpus')
-          .update({ 
-            current_price: newPrice,
-            updated_at: new Date().toISOString()
-          })
+          .update(updateData)
           .eq('id', gpu.id)
         
         if (!updateError) {

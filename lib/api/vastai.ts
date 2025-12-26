@@ -14,11 +14,26 @@ export interface VastAiOffer {
   inet_down: number
   inet_up: number
   cpu_cores_effective: number
+  cpu_ram: number
+  cpu_name: string
   disk_space: number
+  disk_name: string
   verification: string
   dlperf: number
+  dlperf_per_dphtotal: number
   machine_id: number
   cuda_max_good: number
+  gpu_frac: number
+  min_bid: number
+  rentable: boolean
+  geolocation: string
+  pcie_bw: number
+  direct_port_count: number
+  external: boolean
+  gpu_display_active: boolean
+  storage_cost: number
+  inet_up_cost: number
+  inet_down_cost: number
 }
 
 export interface VastAiResponse {
@@ -96,7 +111,7 @@ export function hourlyToMonthly(dph: number): number {
 }
 
 /**
- * Get unique GPU models with average pricing
+ * Get unique GPU models with average pricing and detailed specs
  */
 export function aggregateVastAiPrices(offers: VastAiOffer[]): Map<string, {
   brand: string
@@ -107,6 +122,16 @@ export function aggregateVastAiPrices(offers: VastAiOffer[]): Map<string, {
   maxPrice: number
   count: number
   avgReliability: number
+  // Extended specs
+  avgCpuCores: number
+  avgCpuRam: number
+  avgDiskSpace: number
+  avgInetDown: number
+  avgInetUp: number
+  avgDlperf: number
+  maxCudaVersion: number
+  commonCpuName: string
+  providers: number
 }> {
   const gpuMap = new Map()
 
@@ -121,37 +146,67 @@ export function aggregateVastAiPrices(offers: VastAiOffer[]): Map<string, {
         brand,
         model,
         prices: [],
-        reliabilities: []
+        reliabilities: [],
+        cpuCores: [],
+        cpuRams: [],
+        diskSpaces: [],
+        inetDowns: [],
+        inetUps: [],
+        dlperfs: [],
+        cudaVersions: [],
+        cpuNames: [],
+        machineIds: new Set()
       })
     }
 
     const entry = gpuMap.get(key)
     entry.prices.push(offer.dph_total)
-    if (offer.reliability2) {
-      entry.reliabilities.push(offer.reliability2)
-    }
+    
+    if (offer.reliability2) entry.reliabilities.push(offer.reliability2)
+    if (offer.cpu_cores_effective) entry.cpuCores.push(offer.cpu_cores_effective)
+    if (offer.cpu_ram) entry.cpuRams.push(offer.cpu_ram)
+    if (offer.disk_space) entry.diskSpaces.push(offer.disk_space)
+    if (offer.inet_down) entry.inetDowns.push(offer.inet_down)
+    if (offer.inet_up) entry.inetUps.push(offer.inet_up)
+    if (offer.dlperf) entry.dlperfs.push(offer.dlperf)
+    if (offer.cuda_max_good) entry.cudaVersions.push(offer.cuda_max_good)
+    if (offer.cpu_name) entry.cpuNames.push(offer.cpu_name)
+    if (offer.machine_id) entry.machineIds.add(offer.machine_id)
   }
 
   // Calculate averages
   const result = new Map()
   
   for (const [key, data] of gpuMap.entries()) {
-    const avgPricePerHour = data.prices.reduce((a: number, b: number) => a + b, 0) / data.prices.length
-    const minPrice = Math.min(...data.prices)
-    const maxPrice = Math.max(...data.prices)
-    const avgReliability = data.reliabilities.length > 0 
-      ? data.reliabilities.reduce((a: number, b: number) => a + b, 0) / data.reliabilities.length 
-      : 0
+    const avg = (arr: number[]) => arr.length > 0 ? arr.reduce((a, b) => a + b, 0) / arr.length : 0
+    const avgPricePerHour = avg(data.prices)
+    
+    // Find most common CPU name
+    const cpuNameCounts = data.cpuNames.reduce((acc: any, name: string) => {
+      acc[name] = (acc[name] || 0) + 1
+      return acc
+    }, {})
+    const commonCpuName = Object.entries(cpuNameCounts).sort((a: any, b: any) => b[1] - a[1])[0]?.[0] || 'Various'
 
     result.set(key, {
       brand: data.brand,
       model: data.model,
       avgPricePerHour: Math.round(avgPricePerHour * 100) / 100,
       avgPricePerMonth: hourlyToMonthly(avgPricePerHour),
-      minPrice: Math.round(minPrice * 100) / 100,
-      maxPrice: Math.round(maxPrice * 100) / 100,
+      minPrice: Math.round(Math.min(...data.prices) * 100) / 100,
+      maxPrice: Math.round(Math.max(...data.prices) * 100) / 100,
       count: data.prices.length,
-      avgReliability: Math.round(avgReliability * 100) / 100
+      avgReliability: Math.round(avg(data.reliabilities) * 100) / 100,
+      // Extended specs
+      avgCpuCores: Math.round(avg(data.cpuCores)),
+      avgCpuRam: Math.round(avg(data.cpuRams)),
+      avgDiskSpace: Math.round(avg(data.diskSpaces)),
+      avgInetDown: Math.round(avg(data.inetDowns)),
+      avgInetUp: Math.round(avg(data.inetUps)),
+      avgDlperf: Math.round(avg(data.dlperfs) * 10) / 10,
+      maxCudaVersion: data.cudaVersions.length > 0 ? Math.max(...data.cudaVersions) : 0,
+      commonCpuName,
+      providers: data.machineIds.size
     })
   }
 

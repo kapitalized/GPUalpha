@@ -264,12 +264,19 @@ export default function HomePage() {
                       ({((gpu.current_price - gpu.msrp) / gpu.msrp * 100).toFixed(1)}%)
                     </span>
                   </div>
-                  <Button
-                    onClick={() => setSelectedGpu(gpu)}
-                    className="w-full mt-4 bg-blue-600 hover:bg-blue-700"
-                  >
-                    Make Prediction
-                  </Button>
+                  <div className="flex space-x-2 mt-4">
+                    <Button
+                      onClick={() => setSelectedGpu(gpu)}
+                      className="flex-1 bg-blue-600 hover:bg-blue-700"
+                    >
+                      Predict 🎯
+                    </Button>
+                    <a href={`/gpu/${gpu.id}`} className="flex-1">
+                      <Button variant="outline" className="w-full">
+                        Details →
+                      </Button>
+                    </a>
+                  </div>
                 </div>
               </CardContent>
             </Card>

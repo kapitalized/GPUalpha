@@ -64,12 +64,19 @@ export function GPUCard({ gpu, onPredict }: GPUCardProps) {
             </div>
           )}
           
-          <Button 
-            onClick={() => onPredict(gpu.id)}
-            className="w-full"
-          >
-            Make Prediction 🎯
-          </Button>
+          <div className="flex space-x-2">
+            <Button 
+              onClick={() => onPredict(gpu.id)}
+              className="flex-1"
+            >
+              Predict 🎯
+            </Button>
+            <a href={`/gpu/${gpu.id}`} className="flex-1">
+              <Button variant="outline" className="w-full">
+                Details
+              </Button>
+            </a>
+          </div>
         </div>
       </CardContent>
     </Card>
