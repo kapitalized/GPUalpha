@@ -39,6 +39,7 @@ export interface GPU {
   id: string
   model: string
   brand: string
+  slug: string
   msrp: number
   current_price: number
   availability: 'in_stock' | 'limited' | 'out_of_stock'

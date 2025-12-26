@@ -3,6 +3,7 @@ import { supabase } from '../../../../lib/supabase'
 import { fetchVastAiPrices, aggregateVastAiPrices, hourlyToMonthly } from '../../../../lib/api/vastai'
 import { fetchLambdaLabsPrices, aggregateLambdaPrices } from '../../../../lib/api/lambdalabs'
 import { fetchRunPodPrices, aggregateRunPodPrices } from '../../../../lib/api/runpod'
+import { logger } from '../../../../lib/utils/logger'
 
 export async function POST(request: Request) {
   try {
@@ -23,20 +24,20 @@ export async function POST(request: Request) {
       )
     }
 
-    console.log('🚀 Starting price update from 3 API sources...')
+    logger.info('Starting price update from 3 API sources...')
     
     // Fetch prices from all sources in parallel
     const [vastAiOffers, lambdaInstances, runPodGpus] = await Promise.all([
       fetchVastAiPrices().catch(err => {
-        console.error('❌ Vast.ai fetch failed:', err)
+        logger.error('Vast.ai fetch failed:', err)
         return []
       }),
       fetchLambdaLabsPrices().catch(err => {
-        console.error('❌ Lambda Labs fetch failed:', err)
+        logger.error('Lambda Labs fetch failed:', err)
         return []
       }),
       fetchRunPodPrices().catch(err => {
-        console.error('❌ RunPod fetch failed:', err)
+        logger.error('RunPod fetch failed:', err)
         return []
       })
     ])
@@ -45,10 +46,7 @@ export async function POST(request: Request) {
     const lambdaPrices = aggregateLambdaPrices(lambdaInstances)
     const runPodPrices = aggregateRunPodPrices(runPodGpus)
     
-    console.log(`📊 Data sources:`)
-    console.log(`   - Vast.ai: ${vastAiPrices.size} models`)
-    console.log(`   - Lambda Labs: ${lambdaPrices.size} models`)
-    console.log(`   - RunPod: ${runPodPrices.size} models`)
+    logger.info(`Data sources: Vast.ai: ${vastAiPrices.size} models, Lambda Labs: ${lambdaPrices.size} models, RunPod: ${runPodPrices.size} models`)
     
     // Merge prices with priority: RunPod > Lambda Labs > Vast.ai
     // (Most reliable to least reliable)
@@ -74,7 +72,7 @@ export async function POST(request: Request) {
       })
     }
     
-    console.log(`✅ Total unique GPU models: ${allPrices.size}`)
+    logger.info(`Total unique GPU models: ${allPrices.size}`)
     
     // Get existing GPUs from database
     const { data: gpus, error } = await supabase
@@ -171,7 +169,7 @@ export async function POST(request: Request) {
     })
     
   } catch (error) {
-    console.error('❌ Error updating prices:', error)
+    logger.error('Error updating prices:', error)
     return NextResponse.json(
       { 
         error: 'Failed to update prices', 

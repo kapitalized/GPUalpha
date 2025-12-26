@@ -159,3 +159,4 @@ export function aggregateLambdaPrices(instances: LambdaInstanceType[]): Map<stri
   return gpuMap
 }
 
+

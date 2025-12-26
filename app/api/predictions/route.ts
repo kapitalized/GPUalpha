@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { supabase } from '../../../lib/supabase'
+import { logger } from '../../../lib/utils/logger'
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url)
@@ -33,7 +34,7 @@ export async function GET(request: Request) {
     
     return NextResponse.json(predictions)
   } catch (error) {
-    console.error('Database error:', error)
+    logger.error('Database error fetching predictions:', error)
     return NextResponse.json(
       { error: 'Failed to fetch predictions' },
       { status: 500 }
@@ -86,7 +87,7 @@ export async function POST(request: Request) {
     })
     
   } catch (error) {
-    console.error('Database error:', error)
+    logger.error('Database error creating prediction:', error)
     return NextResponse.json(
       { error: 'Failed to create prediction' },
       { status: 500 }

@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { supabase } from '../../../lib/supabase'
+import { logger } from '../../../lib/utils/logger'
 
 export async function GET() {
   try {
@@ -67,7 +68,7 @@ export async function GET() {
     })
     
   } catch (error) {
-    console.error('Database error:', error)
+    logger.error('Database error fetching leaderboard:', error)
     return NextResponse.json(
       { error: 'Failed to fetch leaderboard' },
       { status: 500 }

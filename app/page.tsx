@@ -9,6 +9,9 @@ import { useState, useEffect } from 'react'
 import { ManualPriceUpdate } from '../components/ManualPriceUpdate'
 import { Button } from '../components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card'
+import { LoadingSkeleton } from '../components/LoadingSkeleton'
+import { logger } from '../lib/utils/logger'
+import toast from 'react-hot-toast'
 
 interface GPU {
   id: string
@@ -61,9 +64,13 @@ export default function HomePage() {
       if (response.ok) {
         const data = await response.json()
         setGpus(data)
+      } else {
+        logger.error('Failed to fetch GPUs:', response.statusText)
+        toast.error('Failed to load GPU data')
       }
     } catch (error) {
-      console.error('Error fetching GPUs:', error)
+      logger.error('Error fetching GPUs:', error)
+      toast.error('Failed to load GPU data')
     } finally {
       setLoading(false)
     }
@@ -75,15 +82,17 @@ export default function HomePage() {
       if (response.ok) {
         const data = await response.json()
         setIndexData(data)
+      } else {
+        logger.error('Failed to fetch index data:', response.statusText)
       }
     } catch (error) {
-      console.error('Error fetching index data:', error)
+      logger.error('Error fetching index data:', error)
     }
   }
 
   const handlePredict = async () => {
     if (!selectedGpu || !predictedPrice) {
-      alert('Please select a GPU and enter a predicted price')
+      toast.error('Please select a GPU and enter a predicted price')
       return
     }
 
@@ -101,27 +110,23 @@ export default function HomePage() {
       })
 
       if (response.ok) {
-        alert('Prediction submitted successfully!')
+        toast.success('Prediction submitted successfully!')
         setSelectedGpu(null)
         setPredictedPrice('')
         setReasoning('')
         setConfidence('50')
       } else {
         const error = await response.json()
-        alert(`Error: ${error.error || 'Failed to submit prediction'}`)
+        toast.error(error.error || 'Failed to submit prediction')
       }
     } catch (error) {
-      console.error('Error submitting prediction:', error)
-      alert('Failed to submit prediction')
+      logger.error('Error submitting prediction:', error)
+      toast.error('Failed to submit prediction')
     }
   }
 
   if (loading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-800 flex items-center justify-center">
-        <div className="text-white text-xl">Loading...</div>
-      </div>
-    )
+    return <LoadingSkeleton />
   }
 
   return (
@@ -271,7 +276,7 @@ export default function HomePage() {
                     >
                       Predict 🎯
                     </Button>
-                    <a href={`/gpu/${gpu.id}`} className="flex-1">
+                    <a href={`/gpu/${gpu.slug || gpu.id}`} className="flex-1">
                       <Button variant="outline" className="w-full">
                         Details →
                       </Button>

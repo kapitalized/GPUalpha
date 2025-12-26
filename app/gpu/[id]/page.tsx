@@ -6,6 +6,15 @@ import { Card, CardContent, CardHeader, CardTitle } from '../../../components/ui
 import { Button } from '../../../components/ui/button'
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
 
+interface GPUListItem {
+  id: string
+  brand: string
+  model: string
+  slug: string
+  current_price: number
+  availability: string
+}
+
 interface GPU {
   id: string
   model: string
@@ -49,12 +58,15 @@ interface GPU {
 export default function GPUDetailPage() {
   const params = useParams()
   const [gpu, setGpu] = useState<GPU | null>(null)
+  const [allGPUs, setAllGPUs] = useState<{ [brand: string]: GPUListItem[] }>({})
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [showSidebar, setShowSidebar] = useState(false)
 
   useEffect(() => {
     if (params.id) {
       fetchGPUDetails(params.id as string)
+      fetchAllGPUs()
     }
   }, [params.id])
 
@@ -68,6 +80,17 @@ export default function GPUDetailPage() {
       setError(err instanceof Error ? err.message : 'Failed to load GPU')
     } finally {
       setLoading(false)
+    }
+  }
+
+  const fetchAllGPUs = async () => {
+    try {
+      const response = await fetch('/api/gpus/all')
+      if (!response.ok) return
+      const data = await response.json()
+      setAllGPUs(data.groupedByBrand || {})
+    } catch (err) {
+      console.error('Failed to fetch GPU list:', err)
     }
   }
 
@@ -134,6 +157,12 @@ export default function GPUDetailPage() {
     source: h.source
   })) || []
 
+  const brandColors: Record<string, string> = {
+    'NVIDIA': 'text-green-400',
+    'AMD': 'text-red-400',
+    'Intel': 'text-blue-400'
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-800">
       {/* Header */}
@@ -146,12 +175,87 @@ export default function GPUDetailPage() {
               <a href="/overview" className="text-slate-300 hover:text-white px-3 py-2">Overview</a>
               <a href="/info" className="text-slate-300 hover:text-white px-3 py-2">All GPUs</a>
               <a href="/history" className="text-slate-300 hover:text-white px-3 py-2">History</a>
+              <button 
+                onClick={() => setShowSidebar(!showSidebar)}
+                className="lg:hidden text-slate-300 hover:text-white px-3 py-2"
+              >
+                {showSidebar ? '✕' : '☰'} GPUs
+              </button>
             </div>
           </div>
         </div>
       </header>
 
-      <main className="container mx-auto px-4 py-12">
+      <div className="flex">
+        {/* GPU Navigation Sidebar */}
+        <aside className={`
+          fixed lg:sticky top-0 left-0 h-screen w-64 bg-slate-900/95 border-r border-slate-800 
+          overflow-y-auto z-40 transition-transform duration-300
+          ${showSidebar ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
+        `}>
+          <div className="p-4">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-white font-bold text-lg">All GPUs</h3>
+              <button 
+                onClick={() => setShowSidebar(false)}
+                className="lg:hidden text-slate-400 hover:text-white"
+              >
+                ✕
+              </button>
+            </div>
+            
+            <div className="space-y-4">
+              {Object.entries(allGPUs).sort().map(([brand, gpus]) => (
+                <div key={brand}>
+                  <h4 className={`font-semibold text-sm mb-2 ${brandColors[brand] || 'text-slate-300'}`}>
+                    {brand} ({gpus.length})
+                  </h4>
+                  <div className="space-y-1">
+                    {gpus.map((g) => (
+                      <a
+                        key={g.id}
+                        href={`/gpu/${g.slug}`}
+                        className={`
+                          block px-3 py-2 rounded text-sm transition-colors
+                          ${gpu?.id === g.id 
+                            ? 'bg-blue-600 text-white' 
+                            : 'text-slate-400 hover:bg-slate-800 hover:text-white'
+                          }
+                        `}
+                      >
+                        <div className="flex items-center justify-between">
+                          <span className="truncate">{g.model}</span>
+                          <span className={`text-xs px-1 rounded ${
+                            g.availability === 'in_stock' ? 'bg-green-500/20 text-green-400' :
+                            g.availability === 'limited' ? 'bg-yellow-500/20 text-yellow-400' :
+                            'bg-red-500/20 text-red-400'
+                          }`}>
+                            {g.availability === 'in_stock' ? '✓' : 
+                             g.availability === 'limited' ? '!' : '✕'}
+                          </span>
+                        </div>
+                        <div className="text-xs text-slate-500 mt-1">
+                          ${g.current_price.toFixed(0)}/mo
+                        </div>
+                      </a>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </aside>
+
+        {/* Overlay for mobile */}
+        {showSidebar && (
+          <div 
+            className="fixed inset-0 bg-black/50 z-30 lg:hidden"
+            onClick={() => setShowSidebar(false)}
+          />
+        )}
+
+        {/* Main Content */}
+        <main className="flex-1 px-4 py-12 lg:px-8">
         {/* GPU Header */}
         <div className="mb-8">
           <div className="flex items-center justify-between mb-4">
@@ -394,7 +498,8 @@ export default function GPUDetailPage() {
             <Button size="lg" variant="outline">View All History</Button>
           </a>
         </div>
-      </main>
+        </main>
+      </div>
     </div>
   )
 }

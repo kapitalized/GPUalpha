@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { supabase } from '../../../../lib/supabase'
+import { logger } from '../../../../lib/utils/logger'
 
 export async function GET(
   request: Request,
@@ -8,8 +9,11 @@ export async function GET(
   try {
     const { id } = params
 
+    // Check if id is a slug (contains letters) or UUID (only hex chars and dashes)
+    const isSlug = /[a-z]/.test(id.toLowerCase())
+    
     // Fetch GPU with price history
-    const { data: gpu, error: gpuError } = await supabase
+    const query = supabase
       .from('gpus')
       .select(`
         *,
@@ -19,8 +23,11 @@ export async function GET(
           recorded_at
         )
       `)
-      .eq('id', id)
-      .single()
+    
+    // Query by slug or ID
+    const { data: gpu, error: gpuError } = isSlug 
+      ? await query.eq('slug', id).single()
+      : await query.eq('id', id).single()
 
     if (gpuError) throw gpuError
     
@@ -58,7 +65,7 @@ export async function GET(
       stats
     })
   } catch (error) {
-    console.error('Error fetching GPU details:', error)
+    logger.error('Error fetching GPU details:', error)
     return NextResponse.json(
       { 
         error: 'Failed to fetch GPU details',

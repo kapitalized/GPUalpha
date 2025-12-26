@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { supabase } from '../../../lib/supabase'
+import { logger } from '../../../lib/utils/logger'
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url)
@@ -39,7 +40,7 @@ export async function GET(request: Request) {
       return NextResponse.json(gpus)
     }
   } catch (error: any) {
-    console.error('Database error:', error)
+    logger.error('Database error fetching GPU data:', error)
     return NextResponse.json(
       { 
         error: 'Failed to fetch GPU data',
@@ -100,7 +101,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Invalid request type' }, { status: 400 })
     
   } catch (error) {
-    console.error('Database error:', error)
+    logger.error('Database error processing request:', error)
     return NextResponse.json(
       { error: 'Failed to process request' },
       { status: 500 }

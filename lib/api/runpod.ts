@@ -195,3 +195,4 @@ export function aggregateRunPodPrices(gpuTypes: RunPodGpuType[]): Map<string, {
   return gpuMap
 }
 
+

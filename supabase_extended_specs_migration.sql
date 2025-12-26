@@ -52,3 +52,4 @@ BEGIN
   RAISE NOTICE 'New columns added: cpu_cores, cpu_ram, cpu_name, disk_space, inet_down, inet_up, dlperf, cuda_version, reliability_score, provider_count, price_range_min, price_range_max, data_sources';
 END $$;
 
+

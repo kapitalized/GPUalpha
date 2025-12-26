@@ -5,6 +5,7 @@
 
 import { NextResponse } from 'next/server'
 import { supabase } from '../../../../../lib/supabase'
+import { logger } from '../../../../../lib/utils/logger'
 
 export async function GET(
   request: Request,
@@ -12,7 +13,7 @@ export async function GET(
 ) {
   try {
     const userId = params.id
-    console.log('Fetching stats for user ID:', userId)
+    logger.debug('Fetching stats for user ID:', userId)
 
     // First, check if user exists
     const { data: user, error: userError } = await supabase
@@ -22,7 +23,7 @@ export async function GET(
       .single()
 
     if (userError) {
-      console.error('User lookup error:', userError)
+      logger.error('User lookup error:', userError)
       if (userError.code === 'PGRST116') {
         // User not found
         return NextResponse.json(
@@ -33,7 +34,7 @@ export async function GET(
       throw userError
     }
 
-    console.log('Found user:', user.username || user.email)
+    logger.debug('Found user:', user.username || user.email)
 
     // Get user's predictions with GPU details (with error handling)
     const { data: predictions, error: predictionsError } = await supabase
@@ -51,7 +52,7 @@ export async function GET(
       .order('created_at', { ascending: false })
 
     if (predictionsError) {
-      console.error('Predictions error:', predictionsError)
+      logger.error('Predictions error:', predictionsError)
       // Don't fail completely, just return empty predictions
     }
 
@@ -128,11 +129,11 @@ export async function GET(
       recentActivity
     }
 
-    console.log('Returning stats for user:', user.username || user.email)
+    logger.debug('Returning stats for user:', user.username || user.email)
     return NextResponse.json(stats)
 
   } catch (error) {
-    console.error('Detailed error in user stats API:', error)
+    logger.error('Detailed error in user stats API:', error)
     return NextResponse.json(
       { 
         error: 'Failed to fetch user stats',

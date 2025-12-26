@@ -71,7 +71,7 @@ export function GPUCard({ gpu, onPredict }: GPUCardProps) {
             >
               Predict 🎯
             </Button>
-            <a href={`/gpu/${gpu.id}`} className="flex-1">
+            <a href={`/gpu/${(gpu as any).slug || gpu.id}`} className="flex-1">
               <Button variant="outline" className="w-full">
                 Details
               </Button>

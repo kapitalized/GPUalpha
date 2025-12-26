@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { supabase } from '../../../../lib/supabase'
+import { logger } from '../../../../lib/utils/logger'
 
 /**
  * Get latest spot price for a GPU (optimized with TimescaleDB)
@@ -57,7 +58,7 @@ export async function GET(request: Request) {
     })
     
   } catch (error: any) {
-    console.error('Error fetching spot price:', error)
+    logger.error('Error fetching spot price:', error)
     return NextResponse.json(
       { 
         error: 'Failed to fetch spot price',
