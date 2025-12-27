@@ -1,10 +1,24 @@
 import { NextResponse } from 'next/server'
 import { supabase } from '../../../lib/supabase'
 import { logger } from '../../../lib/utils/logger'
+import { createPredictionSchema, predictionsQuerySchema } from '../../../lib/validation/schemas'
+import { validateBody, validateQuery } from '../../../lib/validation/middleware'
+import { rateLimiters } from '../../../lib/middleware/rateLimit'
+import { sizeLimiters } from '../../../lib/middleware/requestSizeLimit'
 
 export async function GET(request: Request) {
+  // Rate limiting
+  const rateLimitResponse = rateLimiters.public(request)
+  if (rateLimitResponse) return rateLimitResponse
   const { searchParams } = new URL(request.url)
-  const userId = searchParams.get('user_id')
+  
+  // Validate query parameters
+  const validation = validateQuery(predictionsQuerySchema, searchParams)
+  if (!validation.success) {
+    return validation.response
+  }
+  
+  const { user_id } = validation.data
   
   try {
     let query = supabase
@@ -24,8 +38,8 @@ export async function GET(request: Request) {
       `)
       .order('created_at', { ascending: false })
     
-    if (userId) {
-      query = query.eq('user_id', userId)
+    if (user_id) {
+      query = query.eq('user_id', user_id)
     }
     
     const { data: predictions, error } = await query
@@ -43,18 +57,23 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
+  // Request size limit (check before rate limiting to save quota)
+  const sizeLimitResponse = await sizeLimiters.strict(request)
+  if (sizeLimitResponse) return sizeLimitResponse
+  
+  // Rate limiting (stricter for POST)
+  const rateLimitResponse = rateLimiters.strict(request)
+  if (rateLimitResponse) return rateLimitResponse
+  
+  // Validate request body
+  const validation = await validateBody(createPredictionSchema, request)
+  if (!validation.success) {
+    return validation.response
+  }
+  
+  const { user_id, gpu_id, predicted_price, timeframe, confidence, reasoning } = validation.data
+  
   try {
-    const body = await request.json()
-    const { user_id, gpu_id, predicted_price, timeframe, confidence, reasoning } = body
-    
-    // Validate required fields (user_id is optional for anonymous predictions)
-    if (!gpu_id || !predicted_price || !timeframe || !confidence) {
-      return NextResponse.json(
-        { error: 'Missing required fields' },
-        { status: 400 }
-      )
-    }
-    
     // Use anonymous user ID if not provided
     const finalUserId = user_id || '00000000-0000-0000-0000-000000000000'
     
@@ -64,9 +83,9 @@ export async function POST(request: Request) {
       .insert({
         user_id: finalUserId,
         gpu_id,
-        predicted_price: parseFloat(predicted_price),
+        predicted_price,
         timeframe,
-        confidence: parseInt(confidence),
+        confidence,
         reasoning: reasoning || null
       })
       .select(`

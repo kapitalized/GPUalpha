@@ -177,7 +177,7 @@ export function aggregateVastAiPrices(offers: VastAiOffer[]): Map<string, {
   // Calculate averages
   const result = new Map()
   
-  for (const [key, data] of gpuMap.entries()) {
+  for (const [key, data] of Array.from(gpuMap.entries())) {
     const avg = (arr: number[]) => arr.length > 0 ? arr.reduce((a, b) => a + b, 0) / arr.length : 0
     const avgPricePerHour = avg(data.prices)
     

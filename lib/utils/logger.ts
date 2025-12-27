@@ -1,7 +1,10 @@
 /**
  * Centralized logging utility
  * Uses environment-based logging levels
+ * Sends errors to Sentry in production
  */
+
+import * as Sentry from '@sentry/nextjs'
 
 type LogLevel = 'debug' | 'info' | 'warn' | 'error'
 
@@ -48,10 +51,32 @@ export const logger = {
   error: (...args: unknown[]) => {
     if (shouldLog('error')) {
       console.error('[ERROR]', ...args)
-      // In production, you might want to send to error tracking service
-      // if (process.env.NODE_ENV === 'production') {
-      //   // Send to Sentry, LogRocket, etc.
-      // }
+      
+      // Send to Sentry in production
+      if (process.env.NODE_ENV === 'production' && process.env.NEXT_PUBLIC_SENTRY_DSN) {
+        try {
+          // Capture exception if first arg is an Error
+          if (args[0] instanceof Error) {
+            Sentry.captureException(args[0], {
+              extra: {
+                additionalArgs: args.slice(1).map(arg => 
+                  typeof arg === 'object' ? JSON.stringify(arg) : String(arg)
+                ),
+              },
+            })
+          } else {
+            // Capture message for non-Error objects
+            Sentry.captureMessage(`Error: ${args.map(arg => 
+              typeof arg === 'object' ? JSON.stringify(arg) : String(arg)
+            ).join(' ')}`, {
+              level: 'error',
+            })
+          }
+        } catch (sentryError) {
+          // Don't let Sentry errors break the app
+          console.error('Failed to send error to Sentry:', sentryError)
+        }
+      }
     }
   },
 }

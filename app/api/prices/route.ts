@@ -1,10 +1,24 @@
 import { NextResponse } from 'next/server'
 import { supabase } from '../../../lib/supabase'
 import { logger } from '../../../lib/utils/logger'
+import { gpuIdQuerySchema, priceRoutePostSchema } from '../../../lib/validation/schemas'
+import { validateQuery, validateBody } from '../../../lib/validation/middleware'
+import { rateLimiters } from '../../../lib/middleware/rateLimit'
+import { sizeLimiters } from '../../../lib/middleware/requestSizeLimit'
 
 export async function GET(request: Request) {
+  // Rate limiting
+  const rateLimitResponse = rateLimiters.public(request)
+  if (rateLimitResponse) return rateLimitResponse
   const { searchParams } = new URL(request.url)
-  const gpuId = searchParams.get('id')
+  
+  // Validate query parameters
+  const validation = validateQuery(gpuIdQuerySchema, searchParams)
+  if (!validation.success) {
+    return validation.response
+  }
+  
+  const { id: gpuId } = validation.data
   
   try {
     if (gpuId) {
@@ -27,7 +41,11 @@ export async function GET(request: Request) {
         return NextResponse.json({ error: 'GPU not found' }, { status: 404 })
       }
       
-      return NextResponse.json(gpu)
+      return NextResponse.json(gpu, {
+        headers: {
+          'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=300',
+        },
+      })
     } else {
       // Return all GPUs with latest price data
       const { data: gpus, error } = await supabase
@@ -37,7 +55,11 @@ export async function GET(request: Request) {
       
       if (error) throw error
       
-      return NextResponse.json(gpus)
+      return NextResponse.json(gpus, {
+        headers: {
+          'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=300',
+        },
+      })
     }
   } catch (error: any) {
     logger.error('Database error fetching GPU data:', error)
@@ -53,12 +75,25 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
+  // Request size limit (check before rate limiting to save quota)
+  const sizeLimitResponse = await sizeLimiters.standard(request)
+  if (sizeLimitResponse) return sizeLimitResponse
+  
+  // Rate limiting (stricter for POST)
+  const rateLimitResponse = rateLimiters.strict(request)
+  if (rateLimitResponse) return rateLimitResponse
+  
+  // Validate request body
+  const validation = await validateBody(priceRoutePostSchema, request)
+  if (!validation.success) {
+    return validation.response
+  }
+  
+  const body = validation.data
+  
   try {
-    const body = await request.json()
-    
-    // Add new GPU or update price
     if (body.type === 'price_update') {
-      const { gpu_id, price, source = 'api' } = body
+      const { gpu_id, price, source } = body
       
       // Update current price in gpus table
       const { error: updateError } = await supabase
@@ -85,7 +120,6 @@ export async function POST(request: Request) {
       return NextResponse.json({ success: true, message: 'Price updated' })
     }
     
-    // Add new GPU
     if (body.type === 'new_gpu') {
       const { data, error } = await supabase
         .from('gpus')

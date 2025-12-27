@@ -14,7 +14,7 @@ export async function GET() {
     if (error) throw error
 
     // Group by brand
-    const groupedByBrand = gpus?.reduce((acc: any, gpu) => {
+    const groupedByBrand = gpus?.reduce((acc: any, gpu: { brand?: string; model?: string; id?: string; slug?: string; current_price?: number; availability?: string }) => {
       const brand = gpu.brand || 'Other'
       if (!acc[brand]) {
         acc[brand] = []

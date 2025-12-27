@@ -1,22 +1,29 @@
 import { NextResponse } from 'next/server'
 import { supabase } from '../../../../lib/supabase'
 import { logger } from '../../../../lib/utils/logger'
+import { spotPriceQuerySchema } from '../../../../lib/validation/schemas'
+import { validateQuery } from '../../../../lib/validation/middleware'
+import { rateLimiters } from '../../../../lib/middleware/rateLimit'
 
 /**
  * Get latest spot price for a GPU (optimized with TimescaleDB)
  * Uses TimescaleDB's time-series optimizations for fast queries
  */
 export async function GET(request: Request) {
+  // Rate limiting
+  const rateLimitResponse = rateLimiters.public(request)
+  if (rateLimitResponse) return rateLimitResponse
   const { searchParams } = new URL(request.url)
-  const gpuId = searchParams.get('gpu_id')
+  
+  // Validate query parameters
+  const validation = validateQuery(spotPriceQuerySchema, searchParams)
+  if (!validation.success) {
+    return validation.response
+  }
+  
+  const { gpu_id: gpuId } = validation.data
   
   try {
-    if (!gpuId) {
-      return NextResponse.json(
-        { error: 'gpu_id parameter is required' },
-        { status: 400 }
-      )
-    }
 
     // Option 1: Use TimescaleDB helper function (if available)
     // This is faster as it uses optimized time-series queries
@@ -55,6 +62,10 @@ export async function GET(request: Request) {
       spot_price: priceHistory.price,
       recorded_at: priceHistory.recorded_at,
       source: priceHistory.source
+    }, {
+      headers: {
+        'Cache-Control': 'public, s-maxage=30, stale-while-revalidate=60',
+      },
     })
     
   } catch (error: any) {

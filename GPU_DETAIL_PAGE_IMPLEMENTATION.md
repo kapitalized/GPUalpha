@@ -412,3 +412,5 @@ Full Detail View with Charts
 Enjoy your comprehensive GPU detail pages! 🚀
 
 
+
+

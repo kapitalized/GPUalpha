@@ -4,8 +4,13 @@ import { fetchVastAiPrices, aggregateVastAiPrices, hourlyToMonthly } from '../..
 import { fetchLambdaLabsPrices, aggregateLambdaPrices } from '../../../../lib/api/lambdalabs'
 import { fetchRunPodPrices, aggregateRunPodPrices } from '../../../../lib/api/runpod'
 import { logger } from '../../../../lib/utils/logger'
+import { sizeLimiters } from '../../../../lib/middleware/requestSizeLimit'
 
 export async function POST(request: Request) {
+  // Request size limit (cron jobs shouldn't have large bodies)
+  const sizeLimitResponse = await sizeLimiters.strict(request)
+  if (sizeLimitResponse) return sizeLimitResponse
+  
   try {
     const authHeader = request.headers.get('authorization')
     const expectedToken = process.env.CRON_SECRET
@@ -53,23 +58,23 @@ export async function POST(request: Request) {
     const allPrices = new Map(vastAiPrices)
     
     // Add Lambda Labs (overrides Vast.ai)
-    for (const [key, lambdaData] of lambdaPrices.entries()) {
+    for (const [key, lambdaData] of Array.from(lambdaPrices.entries())) {
       allPrices.set(key, {
         ...lambdaData,
         source: 'lambdalabs',
         avgPricePerMonth: lambdaData.pricePerMonth,
         avgPricePerHour: lambdaData.pricePerHour
-      })
+      } as any)
     }
     
     // Add RunPod (highest priority, overrides both)
-    for (const [key, runPodData] of runPodPrices.entries()) {
+    for (const [key, runPodData] of Array.from(runPodPrices.entries())) {
       allPrices.set(key, {
         ...runPodData,
         source: 'runpod',
         avgPricePerMonth: runPodData.pricePerMonth,
         avgPricePerHour: runPodData.pricePerHour
-      })
+      } as any)
     }
     
     logger.info(`Total unique GPU models: ${allPrices.size}`)
@@ -90,7 +95,7 @@ export async function POST(request: Request) {
       const priceData = allPrices.get(key)
       
       if (priceData) {
-        const newPrice = priceData.avgPricePerMonth || priceData.pricePerMonth
+        const newPrice = priceData.avgPricePerMonth || (priceData as any).pricePerMonth
         const source = (priceData as any).source || 'vastai'
         
         // Build update object with all available data

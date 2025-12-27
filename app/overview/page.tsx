@@ -49,7 +49,7 @@ export default function OverviewPage() {
             <div className="flex space-x-4">
               <span className="text-white px-3 py-2 border-b-2 border-blue-500">Overview</span>
               <a href="/" className="text-slate-300 hover:text-white px-3 py-2">Index</a>
-              <a href="/info" className="text-slate-300 hover:text-white px-3 py-2">Info</a>
+              <a href="/gpu-info" className="text-slate-300 hover:text-white px-3 py-2">GPU Info</a>
               <a href="/history" className="text-slate-300 hover:text-white px-3 py-2">History</a>
               <a href="/analytics" className="text-slate-300 hover:text-white px-3 py-2">Analytics</a>
             </div>
@@ -127,7 +127,7 @@ export default function OverviewPage() {
                   <li>• Performance metrics</li>
                   <li>• Use case recommendations</li>
                 </ul>
-                <a href="/info" className="text-blue-400 hover:text-blue-300 text-sm font-medium mt-4 inline-block">
+                <a href="/gpu-info" className="text-blue-400 hover:text-blue-300 text-sm font-medium mt-4 inline-block">
                   Browse GPUs →
                 </a>
               </CardContent>

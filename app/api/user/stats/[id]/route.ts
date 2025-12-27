@@ -6,13 +6,22 @@
 import { NextResponse } from 'next/server'
 import { supabase } from '../../../../../lib/supabase'
 import { logger } from '../../../../../lib/utils/logger'
+import { userIdParamSchema } from '../../../../../lib/validation/schemas'
+import { validateParams } from '../../../../../lib/validation/middleware'
 
 export async function GET(
   request: Request,
   { params }: { params: { id: string } }
 ) {
+  // Validate path parameters
+  const validation = validateParams(userIdParamSchema, params)
+  if (!validation.success) {
+    return validation.response
+  }
+  
+  const { id: userId } = validation.data
+  
   try {
-    const userId = params.id
     logger.debug('Fetching stats for user ID:', userId)
 
     // First, check if user exists

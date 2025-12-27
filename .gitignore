@@ -65,6 +65,4 @@ $RECYCLE.BIN/
 *.swo
 *~
 
-SECURITY_ENV_GUIDE.md
-ENV_TEMPLATE.md
-.env.local
+

@@ -173,7 +173,7 @@ export default function GPUDetailPage() {
             <div className="flex space-x-4">
               <a href="/" className="text-slate-300 hover:text-white px-3 py-2">Home</a>
               <a href="/overview" className="text-slate-300 hover:text-white px-3 py-2">Overview</a>
-              <a href="/info" className="text-slate-300 hover:text-white px-3 py-2">All GPUs</a>
+              <a href="/gpu-info" className="text-slate-300 hover:text-white px-3 py-2">GPU Info</a>
               <a href="/history" className="text-slate-300 hover:text-white px-3 py-2">History</a>
               <button 
                 onClick={() => setShowSidebar(!showSidebar)}

@@ -152,7 +152,7 @@ export default function HistoryPage() {
             <div className="flex space-x-4">
               <a href="/overview" className="text-slate-300 hover:text-white px-3 py-2">Overview</a>
               <a href="/" className="text-slate-300 hover:text-white px-3 py-2">Index</a>
-              <a href="/info" className="text-slate-300 hover:text-white px-3 py-2">Info</a>
+              <a href="/gpu-info" className="text-slate-300 hover:text-white px-3 py-2">GPU Info</a>
               <span className="text-white px-3 py-2 border-b-2 border-blue-500">History</span>
               <a href="/analytics" className="text-slate-300 hover:text-white px-3 py-2">Analytics</a>
               <a href="/leaderboard" className="text-slate-300 hover:text-white px-3 py-2">Leaderboard</a>

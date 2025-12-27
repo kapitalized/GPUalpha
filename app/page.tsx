@@ -17,6 +17,7 @@ interface GPU {
   id: string
   model: string
   brand: string
+  slug?: string
   current_price: number
   msrp: number
   availability: string
@@ -141,7 +142,7 @@ export default function HomePage() {
             <div className="flex space-x-4">
               <a href="/overview" className="text-slate-300 hover:text-white px-3 py-2">Overview</a>
               <button className="text-slate-300 hover:text-white px-3 py-2">Index</button>
-              <a href="/info" className="text-slate-300 hover:text-white px-3 py-2">Info</a>
+              <a href="/gpu-info" className="text-slate-300 hover:text-white px-3 py-2">GPU Info</a>
               <a href="/history" className="text-slate-300 hover:text-white px-3 py-2">History</a>
               <a href="/analytics" className="text-slate-300 hover:text-white px-3 py-2">Analytics</a>
               <a href="/leaderboard" className="text-slate-300 hover:text-white px-3 py-2">Leaderboard</a>

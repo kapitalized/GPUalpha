@@ -2,6 +2,7 @@
 
 import { createContext, useContext, useEffect, useState } from 'react'
 import { supabase } from '../supabase'
+import { logger } from '../utils/logger'
 import type { Session, User } from '@supabase/supabase-js'
 
 interface UserProfile {
@@ -53,7 +54,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
-        console.log('Auth state changed:', event, session?.user?.email)
+        // Only log meaningful auth events (not initial session check)
+        if (event !== 'INITIAL_SESSION') {
+          logger.debug('Auth state changed:', event, session?.user?.email || 'no user')
+        }
         setSession(session)
         
         if (session?.user) {
