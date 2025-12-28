@@ -5,6 +5,9 @@
 /.pnp
 .pnp.js
 
+# Native Node.js binaries (should not be committed)
+*.node
+
 # testing
 /coverage
 
