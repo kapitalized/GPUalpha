@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { supabase, supabaseServiceRole } from '../../../lib/supabase'
+import { supabase, supabaseServiceRole, GPU } from '../../../lib/supabase'
 import { logger } from '../../../lib/utils/logger'
 import { rateLimiters } from '../../../lib/middleware/rateLimit'
 
@@ -38,37 +38,37 @@ export async function GET(request: Request) {
     }
 
     // Calculate base indices (weighted average of current prices)
-    const totalPrice = gpus.reduce((sum, gpu) => sum + Number(gpu.current_price), 0)
+    const totalPrice = gpus.reduce((sum: number, gpu: GPU) => sum + Number(gpu.current_price), 0)
     const avgPrice = totalPrice / gpus.length
     const baseIndex = 100 // Base index value
 
     // Calculate indices by category
-    const highEndGPUs = gpus.filter(gpu => 
+    const highEndGPUs = gpus.filter((gpu: GPU) => 
       Number(gpu.current_price) >= 1000 || 
       gpu.model.includes('4090') || 
       gpu.model.includes('A100') || 
       gpu.model.includes('H100') ||
       gpu.model.includes('7900 XTX')
     )
-    const midRangeGPUs = gpus.filter(gpu => 
+    const midRangeGPUs = gpus.filter((gpu: GPU) => 
       Number(gpu.current_price) >= 400 && Number(gpu.current_price) < 1000
     )
-    const nvidiaGPUs = gpus.filter(gpu => gpu.brand === 'NVIDIA')
-    const amdGPUs = gpus.filter(gpu => gpu.brand === 'AMD')
+    const nvidiaGPUs = gpus.filter((gpu: GPU) => gpu.brand === 'NVIDIA')
+    const amdGPUs = gpus.filter((gpu: GPU) => gpu.brand === 'AMD')
 
     // Calculate weighted indices
     const gpuComputeIndex = baseIndex * (avgPrice / 1000) // Normalize to base
     const highEndIndex = highEndGPUs.length > 0
-      ? baseIndex * (highEndGPUs.reduce((sum, gpu) => sum + Number(gpu.current_price), 0) / highEndGPUs.length / 1000)
+      ? baseIndex * (highEndGPUs.reduce((sum: number, gpu: GPU) => sum + Number(gpu.current_price), 0) / highEndGPUs.length / 1000)
       : baseIndex
     const midRangeIndex = midRangeGPUs.length > 0
-      ? baseIndex * (midRangeGPUs.reduce((sum, gpu) => sum + Number(gpu.current_price), 0) / midRangeGPUs.length / 500)
+      ? baseIndex * (midRangeGPUs.reduce((sum: number, gpu: GPU) => sum + Number(gpu.current_price), 0) / midRangeGPUs.length / 500)
       : baseIndex
     const nvidiaIndex = nvidiaGPUs.length > 0
-      ? baseIndex * (nvidiaGPUs.reduce((sum, gpu) => sum + Number(gpu.current_price), 0) / nvidiaGPUs.length / 1000)
+      ? baseIndex * (nvidiaGPUs.reduce((sum: number, gpu: GPU) => sum + Number(gpu.current_price), 0) / nvidiaGPUs.length / 1000)
       : baseIndex
     const amdIndex = amdGPUs.length > 0
-      ? baseIndex * (amdGPUs.reduce((sum, gpu) => sum + Number(gpu.current_price), 0) / amdGPUs.length / 1000)
+      ? baseIndex * (amdGPUs.reduce((sum: number, gpu: GPU) => sum + Number(gpu.current_price), 0) / amdGPUs.length / 1000)
       : baseIndex
 
     // Get price history for change calculations
@@ -101,13 +101,13 @@ export async function GET(request: Request) {
 
     // Calculate average prices for periods
     const avg24h = history24h && history24h.length > 0
-      ? history24h.reduce((sum, h) => sum + Number(h.price), 0) / history24h.length
+      ? history24h.reduce((sum: number, h) => sum + Number(h.price), 0) / history24h.length
       : avgPrice
     const avg7d = history7d && history7d.length > 0
-      ? history7d.reduce((sum, h) => sum + Number(h.price), 0) / history7d.length
+      ? history7d.reduce((sum: number, h) => sum + Number(h.price), 0) / history7d.length
       : avgPrice
     const avg30d = history30d && history30d.length > 0
-      ? history30d.reduce((sum, h) => sum + Number(h.price), 0) / history30d.length
+      ? history30d.reduce((sum: number, h) => sum + Number(h.price), 0) / history30d.length
       : avgPrice
 
     // Calculate percentage changes
@@ -119,8 +119,8 @@ export async function GET(request: Request) {
     let volatility = 0
     if (history7d && history7d.length > 1) {
       const prices = history7d.map(h => Number(h.price))
-      const mean = prices.reduce((a, b) => a + b, 0) / prices.length
-      const variance = prices.reduce((sum, price) => sum + Math.pow(price - mean, 2), 0) / prices.length
+      const mean = prices.reduce((a: number, b: number) => a + b, 0) / prices.length
+      const variance = prices.reduce((sum: number, price: number) => sum + Math.pow(price - mean, 2), 0) / prices.length
       volatility = Math.sqrt(variance) / mean * 100 // Coefficient of variation as percentage
     }
 
