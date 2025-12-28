@@ -10,7 +10,7 @@
 2. Create cron job:
    - URL: `https://your-domain.vercel.app/api/prices/update`
    - Method: POST
-   - Headers: `Authorization: Bearer gpu-alpha-price-update-secret-7819`
+   - Headers: `Authorization: Bearer YOUR_CRON_SECRET_HERE`
    - Schedule: Every 5 minutes
 3. Done! ✅
 
@@ -63,7 +63,7 @@ The price update endpoint (`/api/prices/update`) fetches data from Vast.ai, Lamb
 2. **Set Environment Variable in Vercel**:
    - Go to your Vercel project settings
    - Navigate to **Environment Variables**
-   - Add: `CRON_SECRET` = `gpu-alpha-price-update-secret-7819` (or your custom secret)
+   - Add: `CRON_SECRET` = `your-secure-random-secret-here` (generate with `openssl rand -hex 32`)
    - Make sure it's set for **Production**, **Preview**, and **Development**
 
 3. **Deploy to Vercel**:
@@ -100,7 +100,7 @@ The price update endpoint (`/api/prices/update`) fetches data from Vast.ai, Lamb
    - **Request Method**: POST
    - **Request Headers**: 
      ```
-     Authorization: Bearer gpu-alpha-price-update-secret-7819
+     Authorization: Bearer YOUR_CRON_SECRET_HERE
      Content-Type: application/json
      ```
    - **Schedule**: Every 5 minutes
@@ -135,7 +135,7 @@ jobs:
 
 **Setup**:
 1. Go to your GitHub repo → **Settings** → **Secrets and variables** → **Actions**
-2. Add secret: `CRON_SECRET` = `gpu-alpha-price-update-secret-7819`
+2. Add secret: `CRON_SECRET` = `your-secure-random-secret-here`
 3. Commit the workflow file
 4. GitHub will run it automatically
 
@@ -145,7 +145,7 @@ jobs:
 2. Create cron job:
    - **URL**: `https://your-domain.com/api/prices/update`
    - **Method**: POST
-   - **Headers**: `Authorization: Bearer gpu-alpha-price-update-secret-7819`
+   - **Headers**: `Authorization: Bearer YOUR_CRON_SECRET_HERE`
    - **Schedule**: Every 5 minutes
 
 ## Option 3: Local/Server Cron (If self-hosting)
@@ -155,7 +155,7 @@ jobs:
 Add to crontab (`crontab -e`):
 
 ```bash
-*/5 * * * * curl -X POST https://your-domain.com/api/prices/update -H "Authorization: Bearer gpu-alpha-price-update-secret-7819" -H "Content-Type: application/json"
+*/5 * * * * curl -X POST https://your-domain.com/api/prices/update -H "Authorization: Bearer YOUR_CRON_SECRET_HERE" -H "Content-Type: application/json"
 ```
 
 ### Windows Task Scheduler
@@ -167,7 +167,7 @@ Add to crontab (`crontab -e`):
 5. **Program**: `curl.exe`
 6. **Arguments**: 
    ```
-   -X POST https://your-domain.com/api/prices/update -H "Authorization: Bearer gpu-alpha-price-update-secret-7819" -H "Content-Type: application/json"
+   -X POST https://your-domain.com/api/prices/update -H "Authorization: Bearer YOUR_CRON_SECRET_HERE" -H "Content-Type: application/json"
    ```
 
 ## Testing the Cron Job
@@ -176,7 +176,7 @@ Add to crontab (`crontab -e`):
 
 ```powershell
 $headers = @{
-    "Authorization" = "Bearer gpu-alpha-price-update-secret-7819"
+    "Authorization" = "Bearer YOUR_CRON_SECRET_HERE"
     "Content-Type" = "application/json"
 }
 
@@ -187,7 +187,7 @@ Invoke-RestMethod -Uri "http://localhost:2000/api/prices/update" -Method POST -H
 
 ```bash
 curl -X POST http://localhost:2000/api/prices/update \
-  -H "Authorization: Bearer gpu-alpha-price-update-secret-7819" \
+  -H "Authorization: Bearer YOUR_CRON_SECRET_HERE" \
   -H "Content-Type: application/json"
 ```
 

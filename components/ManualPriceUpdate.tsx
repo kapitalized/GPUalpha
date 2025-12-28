@@ -9,10 +9,14 @@ export function ManualPriceUpdate() {
   const updatePrices = async () => {
     setIsUpdating(true)
     try {
+      // ⚠️ SECURITY WARNING: This component should NOT be used in production
+      // The CRON_SECRET should never be exposed in client-side code
+      // This is for development/testing only
+      // In production, use cron jobs or server-side only endpoints
       const response = await fetch('/api/prices/update', {
         method: 'POST',
         headers: {
-          'Authorization': 'Bearer gpu-alpha-price-update-secret'
+          'Content-Type': 'application/json'
         }
       })
       

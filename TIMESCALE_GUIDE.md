@@ -4,10 +4,6 @@
 
 **TimescaleDB is no longer available in Supabase** (deprecated due to licensing restrictions with PostgreSQL 17). This guide uses **standard PostgreSQL optimizations** that provide excellent performance for time-series data without requiring any extensions.
 
-## Note: TimescaleDB Alternative
-
-**TimescaleDB is no longer available in Supabase** due to licensing restrictions with PostgreSQL 17. This guide uses **standard PostgreSQL optimizations** that provide excellent performance for time-series data without requiring extensions.
-
 ## Standard PostgreSQL Time-Series Optimizations
 
 We use standard PostgreSQL features optimized for time-series data:
