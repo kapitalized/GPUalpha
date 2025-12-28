@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { supabase, supabaseServiceRole, GPU } from '../../../lib/supabase'
+import { supabase, supabaseServiceRole, GPU, PriceHistory } from '../../../lib/supabase'
 import { logger } from '../../../lib/utils/logger'
 import { rateLimiters } from '../../../lib/middleware/rateLimit'
 
@@ -101,13 +101,13 @@ export async function GET(request: Request) {
 
     // Calculate average prices for periods
     const avg24h = history24h && history24h.length > 0
-      ? history24h.reduce((sum: number, h) => sum + Number(h.price), 0) / history24h.length
+      ? history24h.reduce((sum: number, h: PriceHistory) => sum + Number(h.price), 0) / history24h.length
       : avgPrice
     const avg7d = history7d && history7d.length > 0
-      ? history7d.reduce((sum: number, h) => sum + Number(h.price), 0) / history7d.length
+      ? history7d.reduce((sum: number, h: PriceHistory) => sum + Number(h.price), 0) / history7d.length
       : avgPrice
     const avg30d = history30d && history30d.length > 0
-      ? history30d.reduce((sum: number, h) => sum + Number(h.price), 0) / history30d.length
+      ? history30d.reduce((sum: number, h: PriceHistory) => sum + Number(h.price), 0) / history30d.length
       : avgPrice
 
     // Calculate percentage changes
@@ -118,7 +118,7 @@ export async function GET(request: Request) {
     // Calculate volatility (standard deviation of recent prices)
     let volatility = 0
     if (history7d && history7d.length > 1) {
-      const prices = history7d.map(h => Number(h.price))
+      const prices = history7d.map((h: PriceHistory) => Number(h.price))
       const mean = prices.reduce((a: number, b: number) => a + b, 0) / prices.length
       const variance = prices.reduce((sum: number, price: number) => sum + Math.pow(price - mean, 2), 0) / prices.length
       volatility = Math.sqrt(variance) / mean * 100 // Coefficient of variation as percentage
