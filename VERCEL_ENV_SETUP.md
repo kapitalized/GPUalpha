@@ -70,7 +70,25 @@ NEXT_PUBLIC_GA_ID=G-KT9C7GBWMB
 
 ---
 
-### 5. **Node Environment** (Auto-set by Vercel)
+### 5. **RunPod API Key** (Optional but Recommended)
+
+```
+RUNPOD_API_KEY=rpa_VG4ROCP1TFT0DXMVW2N0UVKCRFBVTU23OGCZ06O6wuxv0f
+```
+
+**Purpose:** Fetches GPU pricing data from RunPod (highest priority data source)
+
+**Where to get it:**
+- Sign up at: https://runpod.io/
+- Go to: **Settings** → **API Keys**
+- Create a new API key
+- Copy the key (starts with `rpa_`)
+
+**Note:** Without this key, the price update endpoint will still work but won't fetch RunPod data (uses Vast.ai and Lambda Labs only)
+
+---
+
+### 6. **Node Environment** (Auto-set by Vercel)
 
 ```
 NODE_ENV=production
@@ -139,6 +157,7 @@ After adding all variables:
 - [ ] `CRON_SECRET` added
 - [ ] `NEXT_PUBLIC_SENTRY_DSN` added (optional but recommended)
 - [ ] `NEXT_PUBLIC_GA_ID` added (optional)
+- [ ] `RUNPOD_API_KEY` added (optional but recommended)
 - [ ] All variables set for **Production** environment
 - [ ] Values match your `.env.local` (except `NODE_ENV`)
 
@@ -241,9 +260,14 @@ SUPABASE_SERVICE_ROLE_KEY
 CRON_SECRET
 ```
 
-**Optional Variables:**
+**Optional Variables (Recommended):**
 ```
 NEXT_PUBLIC_SENTRY_DSN
+RUNPOD_API_KEY
+```
+
+**Optional Variables:**
+```
 NEXT_PUBLIC_GA_ID
 ```
 

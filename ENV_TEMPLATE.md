@@ -35,6 +35,11 @@ NEXT_PUBLIC_GA_ID=G-KT9C7GBWMB
 # See SENTRY_SETUP_GUIDE.md for detailed instructions
 NEXT_PUBLIC_SENTRY_DSN=https://your-dsn-here@o123456.ingest.sentry.io/1234567
 
+# RunPod API Key (Optional but Recommended)
+# Get from: https://runpod.io/ → Settings → API Keys
+# Used for fetching GPU pricing data from RunPod
+RUNPOD_API_KEY=your-runpod-api-key-here
+
 # Environment
 NODE_ENV=development
 ```
@@ -62,6 +67,13 @@ NODE_ENV=development
    - Navigate to: **Your Project** → **Settings** → **Client Keys (DSN)**
    - Copy the DSN (looks like: `https://abc123@o123456.ingest.sentry.io/1234567`)
    - See `SENTRY_SETUP_GUIDE.md` for detailed step-by-step instructions
+
+6. **RunPod API Key** (optional but recommended):
+   - Sign up at: https://runpod.io/
+   - Go to: **Settings** → **API Keys**
+   - Create a new API key
+   - Copy the key (starts with `rpa_`)
+   - Used for fetching GPU pricing data (highest priority data source)
 
 ## Security Notes
 
