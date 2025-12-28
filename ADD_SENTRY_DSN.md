@@ -5,8 +5,13 @@
 **Add this line to your `.env.local` file:**
 
 ```env
-NEXT_PUBLIC_SENTRY_DSN=https://9f4927db822278c35fc7dda7f0c1cda7@o4510131841597440.ingest.us.sentry.io/4510601172025344
+NEXT_PUBLIC_SENTRY_DSN=https://your-dsn-here@o123456.ingest.sentry.io/1234567
 ```
+
+**To get your actual DSN:**
+1. Go to https://sentry.io and log in
+2. Navigate to: **Your Project** → **Settings** → **Client Keys (DSN)**
+3. Copy the DSN and replace `your-dsn-here@o123456.ingest.sentry.io/1234567` above
 
 ---
 

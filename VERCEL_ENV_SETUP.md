@@ -51,7 +51,7 @@ openssl rand -hex 32
 ### 3. **Sentry Error Tracking** (Recommended)
 
 ```
-NEXT_PUBLIC_SENTRY_DSN=https://9f4927db822278c35fc7dda7f0c1cda7@o4510131841597440.ingest.us.sentry.io/4510601172025344
+NEXT_PUBLIC_SENTRY_DSN=https://your-dsn-here@o123456.ingest.sentry.io/1234567
 ```
 
 **Purpose:** Error tracking and monitoring in production
@@ -63,17 +63,21 @@ NEXT_PUBLIC_SENTRY_DSN=https://9f4927db822278c35fc7dda7f0c1cda7@o451013184159744
 ### 4. **Google Analytics** (Optional)
 
 ```
-NEXT_PUBLIC_GA_ID=G-KT9C7GBWMB
+NEXT_PUBLIC_GA_ID=G-XXXXXXXXXX
 ```
 
 **Purpose:** Analytics tracking (optional)
+
+**Where to get it:**
+- Get from: https://analytics.google.com/
+- Create a property and copy the Measurement ID (starts with `G-`)
 
 ---
 
 ### 5. **RunPod API Key** (Optional but Recommended)
 
 ```
-RUNPOD_API_KEY=rpa_VG4ROCP1TFT0DXMVW2N0UVKCRFBVTU23OGCZ06O6wuxv0f
+RUNPOD_API_KEY=your-runpod-api-key-here
 ```
 
 **Purpose:** Fetches GPU pricing data from RunPod (highest priority data source)

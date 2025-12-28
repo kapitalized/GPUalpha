@@ -24,7 +24,8 @@ Sentry has been integrated into your GPUAlpha application. Here's what was done:
 
 ```env
 # Sentry Error Tracking
-NEXT_PUBLIC_SENTRY_DSN=https://9f4927db822278c35fc7dda7f0c1cda7@o4510131841597440.ingest.us.sentry.io/4510601172025344
+# Get your DSN from: https://sentry.io → Your Project → Settings → Client Keys (DSN)
+NEXT_PUBLIC_SENTRY_DSN=https://your-dsn-here@o123456.ingest.sentry.io/1234567
 ```
 
 **Important**: 
