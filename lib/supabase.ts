@@ -33,8 +33,8 @@ export const supabase = createClient(
 
 // Server-side Supabase client (uses service role key, bypasses RLS)
 // Only use in API routes, never in client-side code
-export const supabaseServiceRole = supabaseServiceRoleKey
-  ? createClient(supabaseUrl, supabaseServiceRoleKey, {
+export const supabaseServiceRole = (supabaseUrl && supabaseServiceRoleKey)
+  ? createClient(supabaseUrl!, supabaseServiceRoleKey!, {
       auth: {
         autoRefreshToken: false,
         persistSession: false
