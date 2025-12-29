@@ -3,6 +3,12 @@ import { ReactNode } from 'react'
 import { AuthProvider } from '../lib/contexts/AuthContext'
 import { ErrorBoundary } from '../components/ErrorBoundary'
 import { Toaster } from 'react-hot-toast'
+import type { Metadata } from 'next'
+
+export const metadata: Metadata = {
+  title: 'GPUAlpha - GPU Compute Price Index',
+  description: 'Real-time market intelligence for GPU compute pricing',
+}
 
 export default function RootLayout({
   children,

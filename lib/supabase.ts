@@ -4,12 +4,32 @@ const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
 
+// Provide better error messages for missing env vars
 if (!supabaseUrl || !supabaseAnonKey) {
-  throw new Error('Missing Supabase environment variables. Please check your .env.local file.')
+  const missing = []
+  if (!supabaseUrl) missing.push('NEXT_PUBLIC_SUPABASE_URL')
+  if (!supabaseAnonKey) missing.push('NEXT_PUBLIC_SUPABASE_ANON_KEY')
+  
+  const errorMessage = `Missing required Supabase environment variables: ${missing.join(', ')}. ` +
+    `Please add them to Vercel Dashboard → Settings → Environment Variables. ` +
+    `See VERCEL_ENV_SETUP.md for instructions.`
+  
+  // In production, throw immediately to fail fast
+  if (process.env.NODE_ENV === 'production') {
+    throw new Error(errorMessage)
+  }
+  
+  // In development/build, log warning but allow build to continue
+  // This helps with build-time checks where env vars might not be available
+  console.warn('⚠️', errorMessage)
 }
 
 // Client-side Supabase client (uses anon key with RLS protection)
-export const supabase = createClient(supabaseUrl, supabaseAnonKey)
+// Will fail at runtime if env vars are missing in production
+export const supabase = createClient(
+  supabaseUrl || 'https://placeholder.supabase.co',
+  supabaseAnonKey || 'placeholder-key'
+)
 
 // Server-side Supabase client (uses service role key, bypasses RLS)
 // Only use in API routes, never in client-side code
