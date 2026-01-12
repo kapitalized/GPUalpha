@@ -19,8 +19,10 @@ We use standard PostgreSQL features optimized for time-series data:
 ### Run the Optimization Migration
 
 1. Go to: **SQL Editor → New Query**
-2. Copy and paste the contents of `supabase_timeseries_optimized.sql`
+2. Copy and paste the contents of `supabase_timeseries_optimized.sql` (in project root)
 3. Click **Run**
+
+**Note:** Completed migration SQL files have been archived to `docs/archive/sql/` for reference.
 
 This will:
 - Create optimized composite indexes for time-series queries

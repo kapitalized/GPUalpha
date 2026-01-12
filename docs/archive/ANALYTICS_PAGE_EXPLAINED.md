@@ -12,10 +12,8 @@ The Analytics page provides comprehensive market intelligence by combining real-
 ### 1. **Primary Data: Supabase Database**
 
 #### **GPUs Table** (`/api/prices`)
-```sql
-SELECT * FROM gpus
-ORDER BY current_price DESC
-```
+
+Queries all GPUs ordered by current price (descending).
 
 **Fields Used:**
 - `id`, `brand`, `model`
@@ -25,12 +23,8 @@ ORDER BY current_price DESC
 - `created_at`, `updated_at`
 
 #### **Price History Table** (`/api/index`)
-```sql
-SELECT gpu_id, price, recorded_at
-FROM price_history
-WHERE recorded_at >= NOW() - INTERVAL '30 days'
-ORDER BY recorded_at ASC
-```
+
+Queries price history for the last 30 days, ordered by timestamp.
 
 **Fields Used:**
 - `gpu_id` - Links to gpus table

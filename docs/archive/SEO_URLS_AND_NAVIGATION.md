@@ -131,21 +131,14 @@ Click [☰ GPUs] →
 ## 🗄️ Database Changes
 
 ### **New Column:**
-```sql
-ALTER TABLE gpus
-ADD COLUMN slug TEXT UNIQUE NOT NULL;
-```
+- Added `slug` column to `gpus` table (TEXT UNIQUE NOT NULL)
 
 ### **Slug Generation:**
-```sql
--- Automatic slug generation
--- "NVIDIA RTX 4090" → "nvidia-rtx-4090"
--- "AMD Radeon RX 7900 XTX" → "amd-radeon-rx-7900-xtx"
-```
-
-### **Uniqueness:**
+- Automatic slug generation: "NVIDIA RTX 4090" → "nvidia-rtx-4090"
 - If duplicate, appends number: `nvidia-rtx-4090-2`
 - Auto-generated on insert/update via trigger
+
+**Note:** Migration SQL has been archived. See `docs/archive/sql/supabase_add_slug_migration.sql` for reference.
 
 ---
 
@@ -153,19 +146,7 @@ ADD COLUMN slug TEXT UNIQUE NOT NULL;
 
 ### **Step 1: Run Database Migration**
 
-```sql
--- In Supabase SQL Editor:
--- https://app.supabase.com/project/cycpibwgmkvdpdooqbzu/sql
-
--- Copy and paste contents of:
--- supabase_add_slug_migration.sql
-
--- This will:
--- 1. Add slug column
--- 2. Generate slugs for existing GPUs
--- 3. Create auto-generation trigger
--- 4. Add uniqueness constraints
-```
+Migration has been completed. See archived SQL file for reference.
 
 ### **Step 2: Restart Dev Server**
 

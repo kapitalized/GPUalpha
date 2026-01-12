@@ -104,14 +104,8 @@ const { avg_price, min_price, max_price, price_change_percent } = await response
 ```
 
 ### Query Daily Aggregates (Fast)
-```sql
--- Use materialized view for daily data
-SELECT day, avg_price, min_price, max_price
-FROM price_history_daily
-WHERE gpu_id = 'xxx'
-  AND day >= CURRENT_DATE - INTERVAL '30 days'
-ORDER BY day DESC;
-```
+
+Use the materialized view for daily data queries. See `TIMESCALE_GUIDE.md` for SQL examples.
 
 ## Storage Considerations
 
@@ -133,32 +127,17 @@ ORDER BY day DESC;
 ## Monitoring & Maintenance
 
 ### Check Index Usage
-```sql
-EXPLAIN ANALYZE
-SELECT * FROM price_history
-WHERE gpu_id = 'xxx'
-  AND recorded_at > NOW() - INTERVAL '30 days'
-ORDER BY recorded_at DESC;
-```
+
+Use `EXPLAIN ANALYZE` to verify indexes are being used. See `TIMESCALE_GUIDE.md` for monitoring SQL examples.
 
 ### Check Materialized View Status
-```sql
-SELECT 
-  matviewname,
-  pg_size_pretty(pg_total_relation_size('public.' || matviewname)) AS size
-FROM pg_matviews 
-WHERE matviewname LIKE 'price_history%';
-```
+
+See `TIMESCALE_GUIDE.md` for SQL queries to check materialized view status and size.
 
 ### Refresh Aggregates
-```sql
--- Manual refresh
-SELECT refresh_price_aggregates();
 
--- Or via API
-POST /api/prices/refresh-aggregates
-Authorization: Bearer <CRON_SECRET>
-```
+- **Manual refresh**: Call the API endpoint `POST /api/prices/refresh-aggregates` with Bearer token
+- **SQL refresh**: `SELECT refresh_price_aggregates();` (see `TIMESCALE_GUIDE.md` for details)
 
 ## Comparison: TimescaleDB vs Standard PostgreSQL
 

@@ -14,14 +14,16 @@ if (!supabaseUrl || !supabaseAnonKey) {
     `Please add them to Vercel Dashboard → Settings → Environment Variables. ` +
     `See VERCEL_ENV_SETUP.md for instructions.`
   
-  // In production, throw immediately to fail fast
-  if (process.env.NODE_ENV === 'production') {
-    throw new Error(errorMessage)
-  }
+  // Log error but don't throw at module load - let runtime handle it
+  // This prevents build failures and allows the app to show a proper error page
+  console.error('❌', errorMessage)
   
-  // In development/build, log warning but allow build to continue
-  // This helps with build-time checks where env vars might not be available
-  console.warn('⚠️', errorMessage)
+  // In production, log to console (Vercel will show this in logs)
+  if (process.env.NODE_ENV === 'production') {
+    console.error('Production deployment missing required environment variables!')
+    console.error('Check Vercel Dashboard → Settings → Environment Variables')
+    console.error('Make sure variables are enabled for "Production" environment')
+  }
 }
 
 // Client-side Supabase client (uses anon key with RLS protection)

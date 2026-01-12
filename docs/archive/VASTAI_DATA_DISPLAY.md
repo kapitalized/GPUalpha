@@ -213,20 +213,10 @@ We create history by saving each update to `price_history` table.
 
 ### What Gets Saved from Vast.ai:
 
-```sql
--- price_history table
-INSERT INTO price_history (
-  gpu_id,           -- Links to gpus table
-  price,            -- FROM: dph_total (converted to monthly)
-  source,           -- SET TO: 'vastai'
-  recorded_at       -- Timestamp of update
-);
+- **price_history table**: Inserts price records with `source='vastai'`
+- **gpus table**: Updates `current_price` and `updated_at` timestamp
 
--- gpus table (updated)
-UPDATE gpus SET
-  current_price = <from Vast.ai>,
-  updated_at = NOW();
-```
+Price data is stored from `dph_total` (converted to monthly) with source tracking.
 
 ### Building Historical Data:
 
@@ -268,21 +258,7 @@ console.log('[Vast.ai] Full offer data:', offers)
 
 ### Option 3: Database Query
 
-```sql
--- View all price history with sources
-SELECT 
-  g.brand,
-  g.model,
-  g.current_price,
-  ph.price as historical_price,
-  ph.source,
-  ph.recorded_at
-FROM gpus g
-LEFT JOIN price_history ph ON g.id = ph.gpu_id
-WHERE ph.source = 'vastai'
-ORDER BY ph.recorded_at DESC
-LIMIT 100;
-```
+Query price history with sources using a JOIN between `gpus` and `price_history` tables, filtering by `source='vastai'`.
 
 ---
 

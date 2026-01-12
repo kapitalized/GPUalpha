@@ -202,20 +202,7 @@ Each API has graceful fallback:
 
 ### Check Price History
 
-```sql
--- In Supabase SQL Editor
-SELECT 
-  g.brand,
-  g.model,
-  ph.price,
-  ph.source,
-  ph.recorded_at
-FROM price_history ph
-JOIN gpus g ON ph.gpu_id = g.id
-WHERE ph.source IN ('vastai', 'lambdalabs', 'runpod')
-ORDER BY ph.recorded_at DESC
-LIMIT 50;
-```
+Query price history with GPU details, filtering by source (vastai, lambdalabs, runpod). See Supabase SQL Editor for example queries.
 
 ---
 

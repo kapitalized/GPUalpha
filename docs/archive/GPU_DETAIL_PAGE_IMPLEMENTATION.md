@@ -14,16 +14,14 @@
     - Provider info (reliability, machine count)
 
 ### 2. **Database Schema Update** ✅
-- **File**: `supabase_extended_specs_migration.sql`
+- **File**: `supabase_extended_specs_migration.sql` (archived)
 - **New Fields Added**:
-  ```sql
-  cpu_cores, cpu_ram, cpu_name
-  disk_space, inet_down, inet_up
-  dlperf, cuda_version
-  reliability_score, provider_count
-  price_range_min, price_range_max
-  data_sources (array)
-  ```
+  - `cpu_cores`, `cpu_ram`, `cpu_name`
+  - `disk_space`, `inet_down`, `inet_up`
+  - `dlperf`, `cuda_version`
+  - `reliability_score`, `provider_count`
+  - `price_range_min`, `price_range_max`
+  - `data_sources` (array)
 
 ### 3. **Enhanced Price Update Logic** ✅
 - **File**: `app/api/prices/update/route.ts`
