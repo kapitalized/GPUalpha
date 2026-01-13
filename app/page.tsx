@@ -12,6 +12,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card'
 import { LoadingSkeleton } from '../components/LoadingSkeleton'
 import { logger } from '../lib/utils/logger'
 import toast from 'react-hot-toast'
+import { REFRESH_INTERVAL_MS } from '../lib/constants'
 
 interface GPU {
   id: string
@@ -55,7 +56,7 @@ export default function HomePage() {
     const interval = setInterval(() => {
       fetchGPUs()
       fetchIndexData()
-    }, 5 * 60 * 1000) // Refresh every 5 minutes
+    }, REFRESH_INTERVAL_MS)
     return () => clearInterval(interval)
   }, [])
 

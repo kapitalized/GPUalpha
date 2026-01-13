@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { supabase, supabaseServiceRole, GPU, PriceHistory } from '../../../lib/supabase'
 import { logger } from '../../../lib/utils/logger'
 import { rateLimiters } from '../../../lib/middleware/rateLimit'
+import { BASE_INDEX, HIGH_END_PRICE_THRESHOLD, MID_RANGE_MIN_PRICE, MID_RANGE_MAX_PRICE, HIGH_END_MODELS } from '../../../lib/constants'
 
 /**
  * Calculate GPU Compute Indices
@@ -40,36 +41,32 @@ export async function GET(request: Request) {
     // Calculate base indices (weighted average of current prices)
     const totalPrice = gpus.reduce((sum: number, gpu: GPU) => sum + Number(gpu.current_price), 0)
     const avgPrice = totalPrice / gpus.length
-    const baseIndex = 100 // Base index value
 
     // Calculate indices by category
     const highEndGPUs = gpus.filter((gpu: GPU) => 
-      Number(gpu.current_price) >= 1000 || 
-      gpu.model.includes('4090') || 
-      gpu.model.includes('A100') || 
-      gpu.model.includes('H100') ||
-      gpu.model.includes('7900 XTX')
+      Number(gpu.current_price) >= HIGH_END_PRICE_THRESHOLD || 
+      HIGH_END_MODELS.some(model => gpu.model.includes(model))
     )
     const midRangeGPUs = gpus.filter((gpu: GPU) => 
-      Number(gpu.current_price) >= 400 && Number(gpu.current_price) < 1000
+      Number(gpu.current_price) >= MID_RANGE_MIN_PRICE && Number(gpu.current_price) < MID_RANGE_MAX_PRICE
     )
     const nvidiaGPUs = gpus.filter((gpu: GPU) => gpu.brand === 'NVIDIA')
     const amdGPUs = gpus.filter((gpu: GPU) => gpu.brand === 'AMD')
 
     // Calculate weighted indices
-    const gpuComputeIndex = baseIndex * (avgPrice / 1000) // Normalize to base
+    const gpuComputeIndex = BASE_INDEX * (avgPrice / 1000) // Normalize to base
     const highEndIndex = highEndGPUs.length > 0
-      ? baseIndex * (highEndGPUs.reduce((sum: number, gpu: GPU) => sum + Number(gpu.current_price), 0) / highEndGPUs.length / 1000)
-      : baseIndex
+      ? BASE_INDEX * (highEndGPUs.reduce((sum: number, gpu: GPU) => sum + Number(gpu.current_price), 0) / highEndGPUs.length / 1000)
+      : BASE_INDEX
     const midRangeIndex = midRangeGPUs.length > 0
-      ? baseIndex * (midRangeGPUs.reduce((sum: number, gpu: GPU) => sum + Number(gpu.current_price), 0) / midRangeGPUs.length / 500)
-      : baseIndex
+      ? BASE_INDEX * (midRangeGPUs.reduce((sum: number, gpu: GPU) => sum + Number(gpu.current_price), 0) / midRangeGPUs.length / 500)
+      : BASE_INDEX
     const nvidiaIndex = nvidiaGPUs.length > 0
-      ? baseIndex * (nvidiaGPUs.reduce((sum: number, gpu: GPU) => sum + Number(gpu.current_price), 0) / nvidiaGPUs.length / 1000)
-      : baseIndex
+      ? BASE_INDEX * (nvidiaGPUs.reduce((sum: number, gpu: GPU) => sum + Number(gpu.current_price), 0) / nvidiaGPUs.length / 1000)
+      : BASE_INDEX
     const amdIndex = amdGPUs.length > 0
-      ? baseIndex * (amdGPUs.reduce((sum: number, gpu: GPU) => sum + Number(gpu.current_price), 0) / amdGPUs.length / 1000)
-      : baseIndex
+      ? BASE_INDEX * (amdGPUs.reduce((sum: number, gpu: GPU) => sum + Number(gpu.current_price), 0) / amdGPUs.length / 1000)
+      : BASE_INDEX
 
     // Get price history for change calculations
     const now = new Date()
