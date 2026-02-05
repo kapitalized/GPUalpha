@@ -14,6 +14,16 @@ interface LeaderboardUser {
   predictions: Array<{ id: string }>
 }
 
+interface LeaderboardRow {
+  rank: number
+  id: string
+  username: string
+  predictions: number
+  accuracy: number
+  points: number
+  streak: number
+}
+
 export async function GET(request: Request) {
   // Rate limiting
   const rateLimitResponse = rateLimiters.public(request)
@@ -38,7 +48,7 @@ export async function GET(request: Request) {
     if (error) throw error
     
     // Format leaderboard data
-    const leaderboard = (userStats || []).map((user: LeaderboardUser, index: number) => ({
+    const leaderboard: LeaderboardRow[] = (userStats || []).map((user: LeaderboardUser, index: number) => ({
       rank: index + 1,
       id: user.id,
       username: user.username || user.email.split('@')[0],
