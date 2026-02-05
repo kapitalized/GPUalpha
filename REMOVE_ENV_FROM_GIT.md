@@ -82,3 +82,4 @@ After pushing, verify the file is removed:
 2. ✅ Remove from Git tracking
 3. ✅ Rotate any exposed secrets
 4. ✅ Update Vercel environment variables with new secrets if needed
+
